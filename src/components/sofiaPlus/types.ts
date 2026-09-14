@@ -4,6 +4,7 @@ export interface SofiaCredentials {
   password: string;
   startDate: string;
   endDate: string;
+  identification: string;
 }
 
 // Representa una coordenada de pantalla usada para hacer clic en un elemento detectado por JS dentro del navegador.

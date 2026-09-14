@@ -1,5 +1,6 @@
 export interface FileUploadState {
   file: File | null;
+  firstIdentification: string | null;
   isUploading: boolean;
 }
 

@@ -1,5 +1,5 @@
 import { BrowserWindow } from 'electron';
-import { booleanScript, clickScript, wait } from './browser.js';
+import { booleanScript, clickScript, frameClickScript, patchSofiaPageGuards, wait } from './browser.js';
 import { fillSofiaInputs } from './login.js';
 import {
   findConsolidatedTimeOption,
@@ -8,7 +8,7 @@ import {
   openAspiranteOptions,
   selectCurriculumOption,
 } from './navigation.js';
-import { fillReportDates, findInstructorPicker, selectCitizenshipId } from './report.js';
+import { clickInstructorSearchButton, fillInstructorIdentification, fillReportDates, findInstructorPicker, instructorResultsLoaded, openIdentificationTypeSelect, selectCitizenshipId } from './report.js';
 import type { SofiaCredentials } from './types.js';
 
 // Este archivo orquesta el flujo principal de automatización de SofiaPlus.
@@ -31,6 +31,19 @@ async function loadWindow(): Promise<BrowserWindow> {
   });
   sofiaWindow = window;
   window.on('closed', () => { sofiaWindow = null; });
+  window.webContents.session.webRequest.onBeforeRequest(
+    { urls: ['http://senasofiaplus.edu.co//*'] },
+    (details, callback) => {
+      const normalizedUrl = details.url.replace(
+        'http://senasofiaplus.edu.co//',
+        'http://senasofiaplus.edu.co/',
+      );
+      callback(normalizedUrl === details.url ? {} : { redirectURL: normalizedUrl });
+    },
+  );
+  window.webContents.on('did-frame-finish-load', () => {
+    void patchSofiaPageGuards(window);
+  });
   let lastLoadError: Error | undefined;
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
@@ -55,6 +68,14 @@ export async function openSofiaPlus(credentials: SofiaCredentials): Promise<void
   await clickScript(window, `(${findConsolidatedTimeOption.toString()})()`, 'No se encontró la opción Consultar Consolidado de Tiempos.');
   await clickScript(window, `(${findInstructorTimeOption.toString()})()`, 'No se encontró la opción Consultar Registro de Tiempo de Instructores.');
   await booleanScript(window, `(${fillReportDates.toString()})(${JSON.stringify({ startDate: credentials.startDate, endDate: credentials.endDate })})`, 'No se encontraron los campos de fechas del informe.');
-  await clickScript(window, `(${findInstructorPicker.toString()})()`, 'No se encontró el botón para seleccionar el instructor.');
-  await booleanScript(window, `(${selectCitizenshipId.toString()})()`, 'No se encontró el campo Tipo de Identificación.');
+  await booleanScript(window, `(${findInstructorPicker.toString()})()`, 'No se encontró el botón para seleccionar el instructor.');
+  await clickScript(window, `(${openIdentificationTypeSelect.toString()})()`, 'No se encontró el campo Tipo de Identificación.', 'inputTipoIdentificacion encontrado:');
+  await booleanScript(window, `(${selectCitizenshipId.toString()})()`, 'No se encontró la opción Cédula de ciudadanía.');
+  await booleanScript(window, `(${fillInstructorIdentification.toString()})(${JSON.stringify(credentials.identification)})`, 'No se encontró el campo de identificación del instructor.');
+  await frameClickScript(
+    window,
+    `(${clickInstructorSearchButton.toString()})()`,
+    'No se encontró el botón Consultar del instructor.',
+  );
+  await booleanScript(window, `(${instructorResultsLoaded.toString()})()`, 'SofiaPlus no mostró la lista de usuarios después de consultar.');
 }

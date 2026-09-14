@@ -258,6 +258,11 @@ html {
   background: var(--accent-soft);
 }
 
+.dropzone.dropzone-error {
+  border-color: #dc2626;
+  background: color-mix(in srgb, #dc2626 8%, var(--surface-muted));
+}
+
 .dropzone-content {
   display: flex;
   align-items: center;
@@ -411,6 +416,17 @@ html {
   color: var(--text);
   text-align: left;
   transition: background-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+
+.excel-preview th.excel-required-column,
+.excel-preview td.excel-required-column {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  font-weight: 600;
+}
+
+.excel-preview th.excel-required-column::after {
+  content: " *";
+  color: #dc2626;
 }
 
 .excel-preview th {

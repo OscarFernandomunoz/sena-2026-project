@@ -12,6 +12,7 @@ export const electronAPI = {
     password: string;
     startDate: string;
     endDate: string;
+    identification: string;
   }): Promise<void> => ipcRenderer.invoke('sofia:open-and-fill', credentials),
 
   // Envía el tema seleccionado para que el proceso principal actualice la barra de título.

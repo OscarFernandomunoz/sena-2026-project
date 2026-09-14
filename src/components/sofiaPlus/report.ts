@@ -32,29 +32,35 @@ export async function fillReportDates(dates: { startDate: string; endDate: strin
   return true;
 }
 
-// Localiza el selector del instructor para abrir el diálogo de selección de personal.
-export async function findInstructorPicker(): Promise<ClickPoint | null> {
-  const pointFor = (element: HTMLElement): ClickPoint => {
-    const rect = element.getBoundingClientRect();
-    let x = rect.left + (rect.width / 2);
-    let y = rect.top + (rect.height / 2);
-    let currentWindow: Window = window;
-    while (currentWindow.frameElement) {
-      const frameRect = currentWindow.frameElement.getBoundingClientRect();
-      x += frameRect.left;
-      y += frameRect.top;
-      currentWindow = currentWindow.parent;
-    }
-    return { x, y };
-  };
-  const picker = document.getElementById('formConsultarRegistroTiempo:instructorOLK');
-  if (!(picker instanceof HTMLElement) || picker.getClientRects().length === 0) return null;
-  const eventOptions = { bubbles: true, cancelable: true, view: window, button: 0, detail: 1 };
-  picker.dispatchEvent(new MouseEvent('mousedown', eventOptions));
-  picker.dispatchEvent(new MouseEvent('mouseup', eventOptions));
-  picker.dispatchEvent(new MouseEvent('click', eventOptions));
-  picker.click();
-  return pointFor(picker);
+// Hace clic en el enlace de lookup del instructor para abrir el diálogo de selección.
+export async function findInstructorPicker(): Promise<boolean> {
+  const picker = document.getElementById('formConsultarRegistroTiempo:instructorOLK')
+    ?? document.querySelector<HTMLElement>('[id="formConsultarRegistroTiempo:instructorOLK"]')
+    ?? document.querySelector<HTMLElement>('a[id$="instructorOLK"]');
+  if (!(picker instanceof HTMLElement) || picker.getClientRects().length === 0) return false;
+
+  const clickable = picker.closest('a') ?? picker;
+  clickable.click();
+  return true;
+}
+
+// Abre el select de tipo de identificación del diálogo de instructor.
+export async function openIdentificationTypeSelect(): Promise<ClickPoint | null> {
+  const select = document.querySelector<HTMLSelectElement>('select[id$=":inputTipoIdentificacion"]')
+    ?? document.querySelector<HTMLSelectElement>('select[id*="inputTipoIdentificacion"]');
+  if (!(select instanceof HTMLSelectElement)) return null;
+  select.focus();
+  const rect = select.getBoundingClientRect();
+  let x = rect.left + (rect.width / 2);
+  let y = rect.top + (rect.height / 2);
+  let currentWindow: Window = window;
+  while (currentWindow.frameElement) {
+    const frameRect = currentWindow.frameElement.getBoundingClientRect();
+    x += frameRect.left;
+    y += frameRect.top;
+    currentWindow = currentWindow.parent;
+  }
+  return { x, y };
 }
 
 // Elige la opción de cédula de ciudadanía en el selector del formulario de reporte.
@@ -62,19 +68,88 @@ export async function selectCitizenshipId(): Promise<boolean> {
   const normalize = (text: string): string => text.trim().toLocaleLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const target = 'cedula de ciudadania';
-  const select = Array.from(document.querySelectorAll<HTMLSelectElement>('select')).find((field) => (
-    field.getClientRects().length > 0 && Array.from(field.options).some((option) => normalize(option.textContent ?? '') === target)
-  ));
-  if (!select) return false;
+  const select = document.querySelector<HTMLSelectElement>('select[id$=":inputTipoIdentificacion"]')
+    ?? document.querySelector<HTMLSelectElement>('select[id*="inputTipoIdentificacion"]');
+  if (!(select instanceof HTMLSelectElement)) return false;
   const option = Array.from(select.options).find((item) => normalize(item.textContent ?? '') === target);
   if (!option) return false;
-  select.focus();
-  select.click();
   select.selectedIndex = option.index;
-  option.selected = true;
-  const changeEvent = new Event('change', { bubbles: true, cancelable: true });
+  select.value = option.value;
   select.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
-  select.dispatchEvent(changeEvent);
-  (select.onchange as ((event: Event) => void) | null)?.call(select, changeEvent);
-  return select.selectedIndex === option.index && normalize(select.options[select.selectedIndex]?.textContent ?? '') === target;
+  select.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+  return select.selectedIndex === option.index;
+}
+
+// Escribe la primera identificación del archivo en el campo del diálogo de instructor.
+export async function fillInstructorIdentification(identification: string): Promise<boolean> {
+  const input = document.querySelector<HTMLInputElement>('input[id$="inputIdentificacion"]')
+    ?? document.querySelector<HTMLInputElement>('input[id*="inputIdentificacion"]');
+  if (!(input instanceof HTMLInputElement) || input.getClientRects().length === 0 || !identification) return false;
+  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+  setter?.call(input, identification);
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+  input.dispatchEvent(new Event('change', { bubbles: true }));
+  input.blur();
+  return input.value === identification;
+}
+
+// Busca y devuelve la posición del botón Consultar del diálogo de instructor.
+export async function findInstructorSearchButton(): Promise<ClickPoint | null> {
+  const normalize = (text: string): string => text.trim().toLocaleLowerCase();
+  const buttonById = document.querySelector<HTMLElement>(
+    'input[id$=":btnSearch"], button[id$=":btnSearch"], input[id$="btnSearch"], button[id$="btnSearch"]',
+  );
+  const button = buttonById ?? Array.from(document.querySelectorAll<HTMLElement>(
+    'input[type="button"], input[type="submit"], button',
+  )).find((element) => {
+    const label = [
+      element.getAttribute('value') ?? '',
+      element.textContent ?? '',
+      element.getAttribute('aria-label') ?? '',
+      element.getAttribute('name') ?? '',
+    ].map(normalize);
+    return label.includes('consultar') && element.getClientRects().length > 0;
+  });
+  if (!button) return null;
+  if (button.getClientRects().length === 0) return null;
+  const rect = button.getBoundingClientRect();
+  let x = rect.left + (rect.width / 2);
+  let y = rect.top + (rect.height / 2);
+  let currentWindow: Window = window;
+  while (currentWindow.frameElement) {
+    const frameRect = currentWindow.frameElement.getBoundingClientRect();
+    x += frameRect.left;
+    y += frameRect.top;
+    currentWindow = currentWindow.parent;
+  }
+  console.log(`Botón Consultar encontrado por ID: ${button.id}. Coordenadas: ${x}, ${y}`);
+  return { x, y };
+}
+
+export async function clickInstructorSearchButton(): Promise<boolean> {
+  const button = document.querySelector<HTMLElement>(
+    'input[id$=":btnSearch"], button[id$=":btnSearch"], input[id$="btnSearch"], button[id$="btnSearch"]',
+  ) ?? Array.from(document.querySelectorAll<HTMLElement>(
+    'input[type="button"], input[type="submit"], button',
+  )).find((element) => {
+    const label = [
+      element.getAttribute('value') ?? '',
+      element.textContent ?? '',
+      element.getAttribute('aria-label') ?? '',
+    ].join(' ').trim().toLocaleLowerCase();
+    return label.includes('consultar') && element.getClientRects().length > 0;
+  });
+  if (!button || button.getClientRects().length === 0) return false;
+  button.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));
+  button.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }));
+  button.click();
+  return true;
+}
+
+export async function instructorResultsLoaded(): Promise<boolean> {
+  const pageText = document.body.textContent?.toLocaleLowerCase() ?? '';
+  const hasResultsTitle = pageText.includes('lista de usuarios sena');
+  const hasResultRow = Array.from(document.querySelectorAll('table tbody tr'))
+    .some((row) => row.getClientRects().length > 0 && row.textContent?.trim());
+  return hasResultsTitle || hasResultRow;
 }

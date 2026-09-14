@@ -9,6 +9,7 @@ export interface IElectronAPI {
     password: string;
     startDate: string;
     endDate: string;
+    identification: string;
   }) => Promise<void>;
 
   // Cambia el tema visual de la aplicación.

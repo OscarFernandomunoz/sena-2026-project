@@ -1,8 +1,8 @@
-import { initFileHandling } from '../components/excelPreview.js';
-import { initLiveContext, initClock } from '../components/liveContext.js';
-import { initSubmit } from '../components/submit.js';
-import { initTheme } from '../components/theme.js';
-import type { AppElements, FileUploadState } from '../components/types.js';
+import { initFileHandling } from '../components/renderer/excelPreview.js';
+import { initLiveContext, initClock } from '../components/renderer/liveContext.js';
+import { initSubmit } from '../components/renderer/submit.js';
+import { initTheme } from '../components/renderer/theme.js';
+import type { AppElements, FileUploadState } from '../components/renderer/types.js';
 
 function getElements(): AppElements {
   return {
@@ -27,7 +27,7 @@ function getElements(): AppElements {
 
 function initApp(): void {
   const elements = getElements();
-  const state: FileUploadState = { file: null, isUploading: false };
+  const state: FileUploadState = { file: null, firstIdentification: null, isUploading: false };
 
   initClock(elements);
   void initLiveContext(elements);
