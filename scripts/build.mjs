@@ -4,8 +4,12 @@ import { resolve } from 'node:path';
 const rootDir = process.cwd();
 rmSync(resolve(rootDir, 'dist'), { recursive: true, force: true });
 const distRendererDir = resolve(rootDir, 'dist/renderer');
+const distImagesDir = resolve(distRendererDir, 'images');
 if (!existsSync(distRendererDir)) {
   mkdirSync(distRendererDir, { recursive: true });
+}
+if (!existsSync(distImagesDir)) {
+  mkdirSync(distImagesDir, { recursive: true });
 }
 copyFileSync(
   resolve(rootDir, 'src/renderer/index.html'),
@@ -14,6 +18,14 @@ copyFileSync(
 copyFileSync(
   resolve(rootDir, 'src/renderer/style.css'),
   resolve(distRendererDir, 'style.css')
+);
+copyFileSync(
+  resolve(rootDir, 'public/images/sofia-plus.svg'),
+  resolve(distImagesDir, 'sofia-plus.svg')
+);
+copyFileSync(
+  resolve(rootDir, 'public/images/sofia-plus.png'),
+  resolve(distImagesDir, 'sofia-plus.png')
 );
 const commonConfig = {
   bundle: true,
