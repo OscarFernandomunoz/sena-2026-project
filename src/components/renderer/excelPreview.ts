@@ -158,12 +158,22 @@ function createFilterBar(table: HTMLTableElement): HTMLDivElement {
   input.type = 'search';
   input.placeholder = 'Escribe para buscar...';
   input.setAttribute('aria-label', 'Texto de búsqueda');
+  const rowValues = Array.from(table.tBodies[0].rows, (row) => Array.from(row.cells, (cell) => (
+    cell.textContent?.toLowerCase() ?? ''
+  )));
+  let filterFrame: number | null = null;
   const apply = (): void => {
-    const value = input.value.trim().toLocaleLowerCase();
-    Array.from(table.tBodies[0].rows).forEach((row) => {
-      const cells = Array.from(row.cells);
-      const values = select.value === 'all' ? cells : [cells[Number(select.value)]];
-      row.hidden = Boolean(value) && !values.some((cell) => cell?.textContent?.toLocaleLowerCase().includes(value));
+    if (filterFrame !== null) return;
+    filterFrame = window.requestAnimationFrame(() => {
+      filterFrame = null;
+      const value = input.value.trim().toLowerCase();
+      const selectedColumn = select.value === 'all' ? null : Number(select.value);
+      Array.from(table.tBodies[0].rows).forEach((row, rowIndex) => {
+        const values = rowValues[rowIndex] ?? [];
+        row.hidden = Boolean(value) && !(selectedColumn === null
+          ? values.some((cellValue) => cellValue.includes(value))
+          : values[selectedColumn]?.includes(value));
+      });
     });
   };
   select.addEventListener('change', apply);

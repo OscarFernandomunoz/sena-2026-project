@@ -53,6 +53,51 @@ function initIconScrollAnimations(): void {
   icons.forEach((icon) => observer.observe(icon));
 }
 
+function initMouseLightEffect(): void {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const header = document.querySelector<HTMLElement>('.content-header');
+  let headerBounds = header?.getBoundingClientRect();
+  let framePending = false;
+  let targetX = window.innerWidth / 2;
+  let targetY = window.innerHeight / 3;
+  let currentX = targetX;
+  let currentY = targetY;
+
+  const updateLightPosition = (): void => {
+    currentX += (targetX - currentX) * 0.18;
+    currentY += (targetY - currentY) * 0.18;
+    document.documentElement.style.setProperty('--mouse-x', `${currentX}px`);
+    document.documentElement.style.setProperty('--mouse-y', `${currentY}px`);
+    if (headerBounds) {
+      document.documentElement.style.setProperty('--header-mouse-x', `${currentX - headerBounds.left}px`);
+      document.documentElement.style.setProperty('--header-mouse-y', `${currentY - headerBounds.top}px`);
+    }
+
+    const distance = Math.hypot(targetX - currentX, targetY - currentY);
+    if (distance > 0.5) {
+      window.requestAnimationFrame(updateLightPosition);
+      return;
+    }
+
+    currentX = targetX;
+    currentY = targetY;
+    framePending = false;
+  };
+
+  const handleMouseMove = (event: MouseEvent): void => {
+    if (document.documentElement.dataset.theme !== 'dark') return;
+    targetX = event.clientX;
+    targetY = event.clientY;
+    if (framePending) return;
+    framePending = true;
+    window.requestAnimationFrame(updateLightPosition);
+  };
+
+  window.addEventListener('resize', () => { headerBounds = header?.getBoundingClientRect(); }, { passive: true });
+  document.addEventListener('mousemove', handleMouseMove, { passive: true });
+}
+
 function initApp(): void {
   const elements = getElements();
   const state: FileUploadState = { file: null, firstIdentification: null, isUploading: false };
@@ -63,6 +108,7 @@ function initApp(): void {
   initFileHandling(elements, state);
   initSubmit(elements, state);
   initIconScrollAnimations();
+  initMouseLightEffect();
 }
 
 document.addEventListener('DOMContentLoaded', initApp);
