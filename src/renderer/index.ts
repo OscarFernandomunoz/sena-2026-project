@@ -57,6 +57,7 @@ function initMouseLightEffect(): void {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
   const header = document.querySelector<HTMLElement>('.content-header');
+  let headerBounds = header?.getBoundingClientRect();
   let framePending = false;
   let targetX = window.innerWidth / 2;
   let targetY = window.innerHeight / 3;
@@ -68,8 +69,7 @@ function initMouseLightEffect(): void {
     currentY += (targetY - currentY) * 0.18;
     document.documentElement.style.setProperty('--mouse-x', `${currentX}px`);
     document.documentElement.style.setProperty('--mouse-y', `${currentY}px`);
-    if (header) {
-      const headerBounds = header.getBoundingClientRect();
+    if (headerBounds) {
       document.documentElement.style.setProperty('--header-mouse-x', `${currentX - headerBounds.left}px`);
       document.documentElement.style.setProperty('--header-mouse-y', `${currentY - headerBounds.top}px`);
     }
@@ -86,6 +86,7 @@ function initMouseLightEffect(): void {
   };
 
   const handleMouseMove = (event: MouseEvent): void => {
+    if (document.documentElement.dataset.theme !== 'dark') return;
     targetX = event.clientX;
     targetY = event.clientY;
     if (framePending) return;
@@ -93,6 +94,7 @@ function initMouseLightEffect(): void {
     window.requestAnimationFrame(updateLightPosition);
   };
 
+  window.addEventListener('resize', () => { headerBounds = header?.getBoundingClientRect(); }, { passive: true });
   document.addEventListener('mousemove', handleMouseMove, { passive: true });
 }
 

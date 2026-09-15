@@ -124,8 +124,6 @@ html {
   gap: 20px;
   padding: 48px clamp(20px, 5vw, 64px) 28px;
   background: transparent;
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
   -webkit-app-region: no-drag;
 }
 
@@ -179,8 +177,6 @@ html {
   border: 1px solid var(--border-strong);
   border-radius: 999px;
   background: linear-gradient(90deg, var(--accent) 0%, var(--accent) 100%) left center / 0% 100% no-repeat, color-mix(in srgb, var(--surface) 82%, transparent);
-  -webkit-backdrop-filter: blur(12px) saturate(120%);
-  backdrop-filter: blur(12px) saturate(120%);
   color: var(--text-muted);
   font: inherit;
   font-size: 12px;
@@ -238,8 +234,6 @@ html {
   border-top-color: transparent;
   border-radius: 18px;
   background: var(--surface);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
   box-shadow: var(--shadow);
   transition: background-color 260ms var(--ease-smooth), border-color 260ms var(--ease-smooth), box-shadow 260ms var(--ease-smooth);
 }
@@ -308,8 +302,6 @@ html.icons-ready .app-icon {
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--form-surface);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
   box-shadow: 0 10px 26px color-mix(in srgb, #000 12%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 12%, transparent);
   transition: background-color 260ms var(--ease-smooth), border-color 260ms var(--ease-smooth), box-shadow 260ms var(--ease-smooth);
 }
@@ -389,8 +381,6 @@ html.icons-ready .app-icon {
   border: 1px dashed var(--border-strong);
   border-radius: 14px;
   background: var(--surface-muted);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
   cursor: pointer;
   transition: border-color 240ms var(--ease-smooth), background-color 240ms var(--ease-smooth), transform 240ms var(--ease-out), box-shadow 240ms var(--ease-smooth);
 }
@@ -735,8 +725,6 @@ html.icons-ready .app-icon {
   padding: 0 22px;
   border-top: 1px solid var(--border);
   background: color-mix(in srgb, var(--surface) 88%, transparent);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
   color: var(--text-muted);
   font-size: 11px;
   user-select: none;
