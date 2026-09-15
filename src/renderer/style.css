@@ -1,20 +1,29 @@
 :root {
   color-scheme: light;
-  --bg: #f2f6f5;
+  --bg: #f7f7f5;
   --surface: #ffffff;
-  --surface-muted: #edf4f3;
-  --border: #d8e4e1;
-  --border-strong: #b9cbc7;
-  --text: #20343a;
-  --text-muted: #63767b;
-  --accent: #0f766e;
-  --accent-hover: #0b5f59;
-  --accent-soft: #e3f4f0;
-  --accent-warm: #c76545;
-  --required-column-bg: #e0f2ee;
-  --success: #13805f;
-  --shadow: 0 18px 44px rgba(26, 58, 61, 0.1);
-  --shadow-soft: 0 8px 24px rgba(26, 58, 61, 0.07);
+  --surface-muted: #eeeeeb;
+  --border: #d4d4d0;
+  --border-strong: #ababa6;
+  --text: #151515;
+  --text-muted: #686864;
+  --accent: #242424;
+  --accent-hover: #000000;
+  --accent-contrast: #ffffff;
+  --accent-soft: #e7e7e3;
+  --accent-warm: #575752;
+  --required-column-bg: #e4e4e0;
+  --success: #424b47;
+  --form-surface: #eeeeec;
+  --input-surface: #ffffff;
+  --table-header: #e9e9e5;
+  --table-stripe: #f7f7f4;
+  --table-hover: #e5e5e1;
+  --required-column-header: #d9d9d4;
+  --required-column-hover: #d6d6d1;
+  --background-gradient: #f5f5f3;
+  --shadow: 0 18px 44px rgba(0, 0, 0, 0.09);
+  --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.07);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   --button-motion: 680ms cubic-bezier(0.33, 1, 0.68, 1);
@@ -22,21 +31,30 @@
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #101b20;
-  --surface: #17282e;
-  --surface-muted: #1b3337;
-  --border: #29434a;
-  --border-strong: #3d6267;
-  --text: #edf7f4;
-  --text-muted: #a4bcb9;
-  --accent: #46c2a5;
-  --accent-hover: #68d5b8;
-  --accent-soft: #193d3b;
-  --accent-warm: #f0a17e;
-  --required-column-bg: #1d4542;
-  --success: #67d6aa;
-  --shadow: 0 20px 48px rgba(0, 0, 0, 0.28);
-  --shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.2);
+  --bg: #090909;
+  --surface: #141414;
+  --surface-muted: #1e1e1e;
+  --border: #303030;
+  --border-strong: #505050;
+  --text: #f1f1ef;
+  --text-muted: #a9a9a5;
+  --accent: #d0d0cc;
+  --accent-hover: #f1f1ed;
+  --accent-contrast: #111111;
+  --accent-soft: #292929;
+  --accent-warm: #c9c9c4;
+  --required-column-bg: #292929;
+  --success: #c8d0ca;
+  --form-surface: #181818;
+  --input-surface: #101010;
+  --table-header: #202020;
+  --table-stripe: #181818;
+  --table-hover: #292929;
+  --required-column-header: #333333;
+  --required-column-hover: #383838;
+  --background-gradient: #090909;
+  --shadow: 0 20px 48px rgba(0, 0, 0, 0.5);
+  --shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.36);
 }
 
 * {
@@ -51,14 +69,27 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background:
-    linear-gradient(125deg, color-mix(in srgb, var(--accent) 10%, transparent), transparent 42%),
-    linear-gradient(315deg, color-mix(in srgb, var(--accent-warm) 8%, transparent), transparent 46%),
-    var(--bg);
+  background: var(--bg);
   background-attachment: fixed;
   color: var(--text);
   font-family: "Aptos", "Segoe UI", sans-serif;
   transition: background-color 260ms var(--ease-smooth), color 260ms var(--ease-smooth);
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  content: "";
+  pointer-events: none;
+  opacity: 0;
+  will-change: background;
+  background: radial-gradient(circle 210px at var(--mouse-x, 50vw) var(--mouse-y, 35vh), rgba(255, 255, 255, 0.1), transparent 72%);
+  transition: opacity 300ms var(--ease-smooth);
+}
+
+:root[data-theme='dark'] body::before {
+  opacity: 1;
 }
 
 html {
@@ -68,6 +99,8 @@ html {
 }
 
 .app-container {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex: 1;
   min-height: 0;
@@ -83,16 +116,41 @@ html {
 }
 
 .content-header {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
   padding: 48px clamp(20px, 5vw, 64px) 28px;
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-  background: color-mix(in srgb, var(--bg) 68%, transparent);
-  -webkit-backdrop-filter: blur(16px) saturate(115%);
-  backdrop-filter: blur(16px) saturate(115%);
-  -webkit-app-region: drag;
+  background: transparent;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  -webkit-app-region: no-drag;
+}
+
+.content-header::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  content: "";
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(circle 190px at var(--header-mouse-x, 50%) var(--header-mouse-y, 50%), rgba(255, 255, 255, 0.1), transparent 72%);
+  transition: opacity 300ms var(--ease-smooth);
+}
+
+:root[data-theme='dark'] .content-header::before {
+  opacity: 1;
+}
+
+.content-header>* {
+  position: relative;
+  z-index: 1;
+}
+
+.content-header>div {
+  -webkit-app-region: no-drag;
 }
 
 .eyebrow,
@@ -132,7 +190,7 @@ html {
 
 .theme-toggle:hover {
   border-color: var(--accent);
-  color: #fff;
+  color: var(--accent-contrast);
   transform: translateY(-1px);
   background-size: 100% 100%, 100% 100%;
   box-shadow: var(--shadow-soft);
@@ -177,10 +235,11 @@ html {
   margin: 0 auto 30px;
   padding: clamp(24px, 4vw, 44px);
   border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  border-top-color: transparent;
   border-radius: 18px;
-  background: linear-gradient(145deg, color-mix(in srgb, var(--surface) 78%, transparent), color-mix(in srgb, var(--surface) 88%, transparent));
-  -webkit-backdrop-filter: blur(24px) saturate(120%);
-  backdrop-filter: blur(24px) saturate(120%);
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   box-shadow: var(--shadow);
   transition: background-color 260ms var(--ease-smooth), border-color 260ms var(--ease-smooth), box-shadow 260ms var(--ease-smooth);
 }
@@ -231,6 +290,14 @@ html.icons-ready .app-icon {
   transform: translateY(-3px) rotate(3deg) scale(1.08);
 }
 
+.input-wrapper .app-icon.is-visible {
+  animation-name: input-icon-scroll-in;
+}
+
+.input-wrapper .app-icon.is-visible:hover {
+  transform: translateY(-50%) rotate(3deg) scale(1.08);
+}
+
 .panel-status .app-icon.is-visible {
   color: var(--success);
 }
@@ -240,16 +307,16 @@ html.icons-ready .app-icon {
   margin-bottom: 22px;
   border: 1px solid var(--border);
   border-radius: 14px;
-  background: color-mix(in srgb, var(--surface-muted) 76%, transparent);
-  -webkit-backdrop-filter: blur(16px) saturate(115%);
-  backdrop-filter: blur(16px) saturate(115%);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 50%, transparent);
+  background: var(--form-surface);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 26px color-mix(in srgb, #000 12%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 12%, transparent);
   transition: background-color 260ms var(--ease-smooth), border-color 260ms var(--ease-smooth), box-shadow 260ms var(--ease-smooth);
 }
 
 .access-card:focus-within {
   border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 10%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 50%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 10%, transparent), 0 10px 26px color-mix(in srgb, #000 12%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 12%, transparent);
 }
 
 .access-card-title {
@@ -296,7 +363,7 @@ html.icons-ready .app-icon {
   padding: 10px 12px 10px 36px;
   border: 1px solid var(--border-strong);
   border-radius: 9px;
-  background: var(--surface);
+  background: var(--input-surface);
   color: var(--text);
   font: inherit;
   font-size: 13px;
@@ -321,9 +388,9 @@ html.icons-ready .app-icon {
   margin-bottom: 24px;
   border: 1px dashed var(--border-strong);
   border-radius: 14px;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--surface-muted) 78%, transparent), color-mix(in srgb, var(--accent-soft) 72%, transparent));
-  -webkit-backdrop-filter: blur(14px) saturate(115%);
-  backdrop-filter: blur(14px) saturate(115%);
+  background: var(--surface-muted);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   cursor: pointer;
   transition: border-color 240ms var(--ease-smooth), background-color 240ms var(--ease-smooth), transform 240ms var(--ease-out), box-shadow 240ms var(--ease-smooth);
 }
@@ -525,8 +592,6 @@ html.icons-ready .app-icon {
   border: 1px solid var(--border);
   border-radius: 12px;
   background: color-mix(in srgb, var(--surface) 86%, transparent);
-  -webkit-backdrop-filter: blur(16px) saturate(115%);
-  backdrop-filter: blur(16px) saturate(115%);
   box-shadow: var(--shadow-soft);
   transition: background-color 260ms var(--ease-smooth), border-color 260ms var(--ease-smooth), box-shadow 260ms var(--ease-smooth);
 }
@@ -545,13 +610,14 @@ html.icons-ready .app-icon {
   border-bottom: 1px solid var(--border);
   color: var(--text);
   text-align: left;
-  transition: background-color 180ms var(--ease-smooth), color 180ms var(--ease-smooth), box-shadow 180ms var(--ease-smooth);
+  transition: background-color 68ms cubic-bezier(0.22, 1, 0.36, 1), color 68ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .excel-preview th.excel-required-column,
 .excel-preview td.excel-required-column {
   background: var(--required-column-bg);
   font-weight: 600;
+  box-shadow: inset 2px 0 0 var(--accent);
 }
 
 .excel-preview th.excel-required-column::after {
@@ -564,12 +630,44 @@ html.icons-ready .app-icon {
   top: 0;
   z-index: 1;
   min-width: 150px;
-  background: color-mix(in srgb, var(--surface-muted) 82%, transparent);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  background: var(--table-header);
   color: var(--text);
   font-weight: 700;
   box-shadow: 0 1px 0 var(--border-strong), 0 5px 12px color-mix(in srgb, var(--text) 5%, transparent);
+}
+
+.excel-preview th.excel-required-column {
+  background: var(--required-column-header);
+  color: var(--text);
+  box-shadow: inset 2px 0 0 var(--accent), 0 1px 0 var(--border-strong), 0 5px 12px color-mix(in srgb, var(--text) 5%, transparent);
+}
+
+.excel-preview thead th.excel-required-column:hover {
+  background: var(--required-column-hover);
+  color: var(--text);
+}
+
+.excel-preview tbody tr:nth-child(even) td {
+  background: var(--table-stripe);
+}
+
+.excel-preview tbody tr:hover td {
+  background: var(--table-hover);
+}
+
+.excel-preview tbody td.excel-required-column {
+  background: var(--required-column-bg);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.excel-preview tbody tr:hover td.excel-required-column {
+  background: var(--required-column-hover);
+}
+
+.excel-preview tbody td.excel-required-column:hover {
+  background: var(--required-column-hover);
+  color: var(--text);
+  box-shadow: inset 2px 0 0 var(--accent);
 }
 
 .excel-preview th:last-child,
@@ -581,14 +679,8 @@ html.icons-ready .app-icon {
   border-bottom: 0;
 }
 
-.excel-preview tbody tr:hover td {
-  background: color-mix(in srgb, var(--accent) 9%, var(--surface));
-  color: var(--text);
-}
-
 .excel-preview tbody td:hover {
-  background: color-mix(in srgb, var(--accent) 18%, var(--surface));
-  box-shadow: inset 3px 0 0 var(--accent);
+  background: var(--table-hover);
 }
 
 .excel-preview thead th:hover {
@@ -607,7 +699,7 @@ html.icons-ready .app-icon {
   background-position: left center;
   background-repeat: no-repeat;
   background-size: 0% 100%, 100% 100%;
-  color: #fff;
+  color: var(--accent-contrast);
   font: inherit;
   font-size: 13px;
   font-weight: 700;
@@ -634,6 +726,8 @@ html.icons-ready .app-icon {
 }
 
 .status-bar {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -641,8 +735,8 @@ html.icons-ready .app-icon {
   padding: 0 22px;
   border-top: 1px solid var(--border);
   background: color-mix(in srgb, var(--surface) 88%, transparent);
-  -webkit-backdrop-filter: blur(12px) saturate(115%);
-  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   color: var(--text-muted);
   font-size: 11px;
   user-select: none;
@@ -721,6 +815,23 @@ html.icons-ready .app-icon {
   }
 }
 
+@keyframes input-icon-scroll-in {
+  0% {
+    opacity: 0;
+    transform: translateY(calc(-50% + 14px)) rotate(-8deg) scale(0.86);
+  }
+
+  65% {
+    opacity: 1;
+    transform: translateY(calc(-50% - 3px)) rotate(2deg) scale(1.04);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(-50%) rotate(0) scale(1);
+  }
+}
+
 @keyframes theme-icon-switch {
   0% {
     opacity: 0;
@@ -759,6 +870,10 @@ html.icons-ready .app-icon {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 1ms !important;
+  }
+
+  body::before {
+    display: none;
   }
 }
 
