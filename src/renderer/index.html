@@ -22,7 +22,11 @@
         </div>
         <button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar a tema oscuro"
           aria-pressed="false">
-          <i class="fa-solid fa-moon" aria-hidden="true"></i>
+          <svg class="app-icon theme-icon is-visible" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path class="svg-moon"
+              d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a6.5 6.5 0 0 0 11 11Z" stroke="currentColor" stroke-width="2"
+              stroke-linejoin="round" />
+          </svg>
           <span>Tema oscuro</span>
         </button>
       </div>
@@ -33,35 +37,71 @@
               <p class="section-kicker">Carga segura</p>
               <h2 class="panel-title">Automatización de ahorro para instructores</h2>
             </div>
-            <span class="panel-status"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Sistema listo</span>
+            <span class="panel-status">
+              <svg class="app-icon is-visible" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+                style="--icon-delay: 120ms;">
+                <circle class="svg-icon-path" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
+                <path class="svg-check" d="M8 12.5l2.8 2.8L16 10" stroke="currentColor" stroke-width="2.4"
+                  stroke-linecap="round" stroke-linejoin="round" fill="none" />
+              </svg>
+              Sistema listo
+            </span>
           </div>
           <form id="accessForm" class="access-card" onsubmit="return false;">
             <div class="access-card-title">Datos de Acceso</div>
             <div class="form-group">
               <label for="usuario">Usuario:</label>
               <div class="input-wrapper">
-                <i class="fa-regular fa-user"></i>
+                <svg class="app-icon input-icon is-visible" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+                  style="--icon-delay: 20ms;">
+                  <circle class="svg-icon-path" cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" />
+                  <path class="svg-icon-path" d="M4 20c1.5-4 5-6 8-6s6.5 2 8 6" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" />
+                </svg>
                 <input type="text" id="usuario" class="input-control" value="juan.perez" required />
               </div>
             </div>
             <div class="form-group">
               <label for="password">Contraseña:</label>
               <div class="input-wrapper">
-                <i class="fa-solid fa-lock"></i>
+                <svg class="app-icon input-icon is-visible" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+                  style="--icon-delay: 40ms;">
+                  <rect class="svg-icon-path" x="4" y="11" width="16" height="10" rx="2" stroke="currentColor"
+                    stroke-width="2" />
+                  <path class="svg-icon-path" d="M8 11V7.5C8 5.3 9.8 3.5 12 3.5s4 1.8 4 4V11" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" />
+                  <circle class="svg-lock-core" cx="12" cy="16" r="1.2" fill="currentColor" opacity="0.85" />
+                </svg>
                 <input type="password" id="password" class="input-control" value="password123" required />
               </div>
             </div>
             <div class="form-group">
               <label for="fechaInicio">Fecha de inicio:</label>
               <div class="input-wrapper">
-                <i class="fa-regular fa-calendar"></i>
+                <svg class="app-icon input-icon is-visible" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+                  style="--icon-delay: 60ms;">
+                  <rect class="svg-icon-path" x="3.5" y="5" width="17" height="16" rx="2.5" stroke="currentColor"
+                    stroke-width="2" />
+                  <path class="svg-icon-path" d="M3.5 9.5h17" stroke="currentColor" stroke-width="2" />
+                  <path class="svg-icon-path" d="M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  <circle class="svg-cal-dot" cx="12" cy="15" r="1.5" fill="currentColor" opacity="0.85" />
+                </svg>
                 <input type="date" id="fechaInicio" class="input-control" required />
               </div>
             </div>
             <div class="form-group">
               <label for="fechaFin">Fecha fin:</label>
               <div class="input-wrapper">
-                <i class="fa-regular fa-calendar-check"></i>
+                <svg class="app-icon input-icon is-visible" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+                  style="--icon-delay: 80ms;">
+                  <rect class="svg-icon-path" x="3.5" y="5" width="17" height="16" rx="2.5" stroke="currentColor"
+                    stroke-width="2" />
+                  <path class="svg-icon-path" d="M3.5 9.5h17" stroke="currentColor" stroke-width="2" />
+                  <path class="svg-icon-path" d="M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  <path class="svg-check" d="M9.5 14.5l2 2 4-4" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"
+                    stroke-linejoin="round" fill="none" />
+                </svg>
                 <input type="date" id="fechaFin" class="input-control" required />
               </div>
             </div>
@@ -70,8 +110,16 @@
             <input type="file" id="fileInput" accept=".xls, .xlsx" required />
             <div class="dropzone-content">
               <div class="dropzone-icon">
-                <i class="fa-solid fa-cloud"></i>
-                <i class="fa-solid fa-arrow-up arrow-up"></i>
+                <svg class="app-icon is-visible cloud-icon" viewBox="0 0 36 28" fill="none" aria-hidden="true"
+                  style="--icon-delay: 100ms;">
+                  <path class="svg-cloud"
+                    d="M10 24a6.5 6.5 0 0 1-1.2-12.9 8 8 0 0 1 15.4-2.7A5.8 5.8 0 0 1 27 24H10Z" stroke="currentColor"
+                    stroke-width="2" stroke-linejoin="round" />
+                </svg>
+                <svg class="app-icon is-visible upload-arrow-icon" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path class="svg-arrow" d="M7 11V3m0 0L3.5 6.5M7 3l3.5 3.5" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
               </div>
               <span class="dropzone-text" id="dropzoneText">Arrastra y suelta tu archivo de nómina aquí (.xls,
                 .xlsx). Obligatorio. Debe incluir la Columna 3.</span>
@@ -88,7 +136,26 @@
             </svg>
           </div>
           <div class="excel-preview" id="excelPreview" aria-live="polite"></div>
-          <button class="btn-submit" id="btnUpload">Iniciar sesión en SofiaPlus</button>
+          <button class="btn-submit" id="btnUpload">
+            <span class="btn-submit-inner">
+              <svg class="app-icon btn-icon is-visible" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path class="svg-icon-path"
+                  d="M10 3H7.8A3.8 3.8 0 0 0 4 6.8V17A4 4 0 0 0 8 21h9a3 3 0 0 0 3-3V7l-4-4Z" stroke="currentColor"
+                  stroke-width="2" stroke-linejoin="round" />
+                <path class="svg-icon-path" d="M14 3v4h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+              <span class="btn-label">Iniciar sesión en SofiaPlus</span>
+              <svg class="btn-loader" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity="0.25" stroke-width="3" />
+                <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+              </svg>
+              <svg class="btn-success" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 12.5l4.2 4.2L19 7.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+            </span>
+          </button>
         </div>
       </section>
       <section id="dashboard" class="view-section placeholder-view">Resumen general e indicadores del sistema.</section>
@@ -101,17 +168,42 @@
     </main>
   </div>
   <footer class="status-bar">
-    <div class="status-item"><i class="fa-regular fa-clock" aria-hidden="true"></i><span id="clock">12:00 PM</span>
+    <div class="status-item">
+      <svg class="app-icon status-icon is-visible" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle class="svg-icon-path" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
+        <path class="svg-clock-hands" d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round" fill="none" />
+      </svg><span id="clock">12:00 PM</span>
     </div>
     <div class="status-divider"></div>
-    <div class="status-item"><i class="fa-regular fa-calendar" aria-hidden="true"></i><span id="currentDate">Cargando
-        fecha...</span></div>
+    <div class="status-item">
+      <svg class="app-icon status-icon is-visible" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect class="svg-icon-path" x="3.5" y="5" width="17" height="16" rx="2.5" stroke="currentColor" stroke-width="2" />
+        <path class="svg-icon-path" d="M3.5 9.5h17" stroke="currentColor" stroke-width="2" />
+        <path class="svg-icon-path" d="M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg><span id="currentDate">Cargando fecha...</span>
+    </div>
     <div class="status-divider"></div>
-    <div class="status-item"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span
-        id="currentCity">Detectando ciudad...</span></div>
+    <div class="status-item">
+      <svg class="app-icon status-icon is-visible" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path class="svg-icon-path"
+          d="M12 21s6.5-5.8 6.5-11a6.5 6.5 0 1 0-13 0c0 5.2 6.5 11 6.5 11Z" stroke="currentColor" stroke-width="2"
+          stroke-linejoin="round" />
+        <circle class="svg-icon-path" cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="2" />
+      </svg><span id="currentCity">Detectando ciudad...</span>
+    </div>
     <div class="status-divider"></div>
-    <div class="status-item weather-item"><i id="weatherIcon" class="fa-solid fa-cloud-sun" aria-hidden="true"></i><span
-        id="weather">Consultando clima...</span></div>
+    <div class="status-item weather-item">
+      <svg class="app-icon status-icon is-visible" viewBox="0 0 24 24" fill="none" aria-hidden="true" id="weatherIcon">
+        <circle class="svg-sun" cx="9" cy="13" r="4.2" stroke="currentColor" stroke-width="2" />
+        <path class="svg-sun-rays"
+          d="M9 3.5v2.3M3.5 13H5.8M5.8 7.2L4.2 5.6M12.2 7.2l1.6-1.6M13.8 13h2.3M12.2 18.8l1.6 1.6M4.2 20.4l1.6-1.6M9 20.5v-2.3"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        <path class="svg-weather-cloud"
+          d="M17 20.5a4 4 0 0 0 .3-8 5 5 0 0 0-9.7 1.2A3.5 3.5 0 0 0 8 20.5h9Z" stroke="currentColor" stroke-width="2"
+          stroke-linejoin="round" />
+      </svg><span id="weather">Consultando clima...</span>
+    </div>
     <div id="statusMessage" class="status-message" aria-live="polite"></div>
   </footer>
   <script type="module" src="index.js"></script>

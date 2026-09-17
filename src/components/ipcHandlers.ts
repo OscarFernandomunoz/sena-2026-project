@@ -11,13 +11,26 @@ export function registerIpcHandlers(): void {
     await openSofiaPlus(credentials);
   });
 
-  // Cambia el color del overlay de la barra de título para que coincida con el tema visual actual.
-  ipcMain.on('app:set-theme', (_event, theme: 'light' | 'dark') => {
-    const mainWindow = BrowserWindow.getAllWindows()[0];
-    if (!mainWindow) return;
+  // Controla la ventana desde la titlebar custom (frame: false)
+  ipcMain.on('window:minimize', () => {
+    const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
+    win?.minimize();
+  });
 
-    mainWindow.setTitleBarOverlay(theme === 'dark'
-      ? { color: '#11161c', symbolColor: '#eef2f5', height: 32 }
-      : { color: '#f4f6f8', symbolColor: '#17212b', height: 32 });
+  ipcMain.on('window:toggle-maximize', () => {
+    const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
+    if (!win) return;
+    if (win.isMaximized()) win.unmaximize();
+    else win.maximize();
+  });
+
+  ipcMain.on('window:close', () => {
+    const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
+    win?.close();
+  });
+
+  ipcMain.handle('window:is-maximized', () => {
+    const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
+    return win?.isMaximized() ?? false;
   });
 }

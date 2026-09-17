@@ -25,32 +25,68 @@ function getElements(): AppElements {
   };
 }
 
+function enforceSvgIconVisibility(): void {
+  const selectors = [
+    '.svg-icon-path', '.svg-cloud', '.svg-arrow', '.svg-moon',
+    '.svg-sun', '.svg-sun-rays', '.svg-weather-cloud', '.svg-clock-hands', '.svg-check',
+    '.svg-lock-core', '.svg-cal-dot',
+  ];
+  document.querySelectorAll<SVGElement | HTMLElement>(selectors.join(',')).forEach((el) => {
+    if (el instanceof SVGElement || el instanceof HTMLElement) {
+      el.style.setProperty('stroke-dashoffset', '0', 'important');
+      el.style.setProperty('stroke-dasharray', '10000', 'important');
+      el.style.setProperty('opacity', '1', 'important');
+      el.style.setProperty('visibility', 'visible', 'important');
+      el.style.setProperty('display', '', 'important');
+    }
+  });
+  document.querySelectorAll<HTMLElement | SVGElement>('.app-icon, .input-icon, .status-icon, .btn-icon, .theme-icon, .cloud-icon, .upload-arrow-icon').forEach((svg) => {
+    svg.style.setProperty('opacity', '1', 'important');
+    svg.style.setProperty('visibility', 'visible', 'important');
+    svg.style.removeProperty('animation-play-state');
+  });
+}
+
 function initIconScrollAnimations(): void {
   const icons = Array.from(document.querySelectorAll<HTMLElement>(
-    '.theme-toggle i, .panel-status i, .input-wrapper i, .dropzone-icon i, .status-item i',
+    '.app-icon, .theme-icon, .status-icon, .input-icon, .dropzone-icon .cloud-icon, .dropzone-icon .upload-arrow-icon, .btn-icon',
   ));
   if (!icons.length) return;
 
   document.documentElement.classList.add('icons-ready');
   icons.forEach((icon, index) => {
     icon.classList.add('app-icon');
-    icon.style.setProperty('--icon-delay', `${Math.min(index * 45, 300)}ms`);
+    if (!icon.style.getPropertyValue('--icon-delay')) {
+      icon.style.setProperty('--icon-delay', `${Math.min(index * 45, 300)}ms`);
+    }
   });
 
   if (!('IntersectionObserver' in window)) {
     icons.forEach((icon) => icon.classList.add('is-visible'));
-    return;
+  } else {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.1 });
+    icons.forEach((icon) => observer.observe(icon));
   }
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-      entry.target.classList.add('is-visible');
-      observer.unobserve(entry.target);
-    });
-  }, { threshold: 0.35 });
+  window.setTimeout(enforceSvgIconVisibility, 1500);
+  window.setTimeout(enforceSvgIconVisibility, 3500);
+  window.setTimeout(enforceSvgIconVisibility, 7000);
 
-  icons.forEach((icon) => observer.observe(icon));
+  // Re-force visibility cada vez que un input recibe foco (soluciona el bug del desaparecido al seleccionar)
+  document.addEventListener('focusin', (event) => {
+    const target = event.target as Element | null;
+    if (target && target.closest('.input-wrapper, .access-card, .dropzone')) {
+      enforceSvgIconVisibility();
+      window.setTimeout(enforceSvgIconVisibility, 10);
+      window.setTimeout(enforceSvgIconVisibility, 120);
+    }
+  }, true);
 }
 
 function initMouseLightEffect(): void {
