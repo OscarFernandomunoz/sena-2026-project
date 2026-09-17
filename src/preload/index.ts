@@ -19,8 +19,8 @@ export const electronAPI = {
   close: (): void => ipcRenderer.send('window:close'),
   isMaximized: (): Promise<boolean> => ipcRenderer.invoke('window:is-maximized'),
   onMaximizeChange: (callback: (maximized: boolean) => void): () => void => {
-    const maximize = () => callback(true);
-    const unmaximize = () => callback(false);
+    const maximize = (): void => callback(true);
+    const unmaximize = (): void => callback(false);
     ipcRenderer.on('window:maximized', maximize);
     ipcRenderer.on('window:unmaximized', unmaximize);
     return () => {
