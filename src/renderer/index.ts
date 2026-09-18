@@ -2,6 +2,7 @@ import { initFileHandling } from '../components/renderer/excelPreview.js';
 import { initLiveContext, initClock } from '../components/renderer/liveContext.js';
 import { initSubmit } from '../components/renderer/submit.js';
 import { initTheme } from '../components/renderer/theme.js';
+import { initTitleBar } from '../components/renderer/titleBar.js';
 import type { AppElements, FileUploadState } from '../components/renderer/types.js';
 
 function getElements(): AppElements {
@@ -138,6 +139,7 @@ function initApp(): void {
   const elements = getElements();
   const state: FileUploadState = { file: null, firstIdentification: null, isUploading: false };
 
+  initTitleBar();
   initClock(elements);
   void initLiveContext(elements);
   initTheme(elements);

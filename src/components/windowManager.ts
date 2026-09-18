@@ -2,7 +2,7 @@ import { BrowserWindow } from 'electron';
 import { join } from 'node:path';
 
 // Crea la ventana principal de la aplicación con el renderer HTML y el preload seguro.
-// Usa frame: false + titleBarStyle: hidden para que la titlebar HTML custom (arrastrable) sea la visible.
+// Usa frame: false para barra de título personalizada que coincide con el tema de la app.
 export function createMainWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
     width: 1000,
@@ -13,7 +13,6 @@ export function createMainWindow(): BrowserWindow {
     frame: false,
     autoHideMenuBar: true,
     backgroundColor: '#090909',
-    titleBarStyle: 'hidden',
     webPreferences: {
       preload: join(process.cwd(), 'dist/preload/index.js'),
       contextIsolation: true,

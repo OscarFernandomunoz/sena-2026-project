@@ -20,8 +20,13 @@ export function registerIpcHandlers(): void {
   ipcMain.on('window:toggle-maximize', () => {
     const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
     if (!win) return;
-    if (win.isMaximized()) win.unmaximize();
-    else win.maximize();
+    if (win.isMaximized()) {
+      win.unmaximize();
+      win.webContents.send('window:unmaximized');
+    } else {
+      win.maximize();
+      win.webContents.send('window:maximized');
+    }
   });
 
   ipcMain.on('window:close', () => {

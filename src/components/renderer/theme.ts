@@ -16,7 +16,6 @@ export function initTheme(elements: Pick<AppElements, 'themeToggle'>): void {
 function setTheme(theme: Theme, elements: Pick<AppElements, 'themeToggle'>, animate: boolean): void {
   const isDark = theme === 'dark';
   document.documentElement.dataset.theme = theme;
-  window.electronAPI.setTheme(theme);
   elements.themeToggle.setAttribute('aria-pressed', String(isDark));
   elements.themeToggle.setAttribute('aria-label', isDark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro');
   elements.themeToggle.innerHTML = `<i class="fa-solid fa-${isDark ? 'sun' : 'moon'}" aria-hidden="true"></i><span>Tema ${isDark ? 'claro' : 'oscuro'}</span>`;

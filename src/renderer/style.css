@@ -76,6 +76,72 @@ body {
   transition: background-color 260ms var(--ease-smooth), color 260ms var(--ease-smooth);
 }
 
+/* Custom Title Bar */
+.title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  -webkit-app-region: drag;
+  user-select: none;
+  transition: background-color 260ms var(--ease-smooth), border-color 260ms var(--ease-smooth);
+}
+
+.title-bar-drag-region {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+  padding-left: 12px;
+  -webkit-app-region: drag;
+}
+
+.title-bar-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.title-bar-controls {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  -webkit-app-region: no-drag;
+}
+
+.title-bar-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color 120ms var(--ease-smooth), color 120ms var(--ease-smooth);
+}
+
+.title-bar-button:hover {
+  background: var(--surface-muted);
+  color: var(--text);
+}
+
+.title-bar-button.close-button:hover {
+  background: #e81123;
+  color: white;
+}
+
+.title-bar-button svg {
+  width: 10px;
+  height: 10px;
+}
+
 body::before {
   position: fixed;
   inset: 0;
