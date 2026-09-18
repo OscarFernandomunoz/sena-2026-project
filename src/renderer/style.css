@@ -183,7 +183,7 @@ html {
 
 .content-header {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -191,6 +191,7 @@ html {
   padding: 48px clamp(20px, 5vw, 64px) 28px;
   background: transparent;
   -webkit-app-region: no-drag;
+  z-index: 10;
 }
 
 .content-header::before {
@@ -234,6 +235,10 @@ html {
   letter-spacing: -0.02em;
 }
 
+.theme-selector {
+  position: relative;
+}
+
 .theme-toggle {
   display: inline-flex;
   align-items: center;
@@ -272,6 +277,60 @@ html {
 
 .theme-toggle {
   -webkit-app-region: no-drag;
+}
+
+.theme-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 160px;
+  padding: 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: opacity 200ms var(--ease-smooth), visibility 200ms var(--ease-smooth), transform 200ms var(--ease-smooth);
+  z-index: 1000;
+}
+
+.theme-dropdown.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 160ms var(--ease-smooth), transform 160ms var(--ease-out);
+}
+
+.theme-option:hover {
+  background: var(--surface-muted);
+  transform: translateX(2px);
+}
+
+.theme-option .app-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+}
+
+.theme-option:hover .app-icon {
+  color: var(--accent);
 }
 
 .theme-toggle:focus-visible,
@@ -413,7 +472,8 @@ html.icons-ready .app-icon {
   top: 50%;
   left: 13px;
   transform: translateY(-50%);
-  color: var(--text-muted);
+  color: var(--text);
+  opacity: 0.6;
   font-size: 13px;
 }
 
@@ -424,10 +484,9 @@ html.icons-ready .app-icon {
   transition: color 220ms var(--ease-smooth), transform 220ms var(--ease-out), filter 220ms var(--ease-smooth);
 }
 
-.input-control:focus+.input-icon,
 .input-wrapper:focus-within .input-icon {
-  color: var(--accent);
-  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--accent) 30%, transparent));
+  color: var(--text);
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--accent) 50%, transparent));
 }
 
 /* SVG icons: reveal con clip-path + dasharray generoso a prueba de repaints */
@@ -679,20 +738,19 @@ html.icons-ready .app-icon {
   display: block;
   width: fit-content;
   margin-left: auto;
-  padding: 12px 20px;
-  border: 1px solid var(--accent);
-  border-radius: 10px;
-  background-image: linear-gradient(135deg, var(--accent-hover), color-mix(in srgb, var(--accent-hover) 76%, #0b3d3a)), linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 76%, #0b3d3a));
-  background-position: left center;
-  background-repeat: no-repeat;
-  background-size: 0% 100%, 100% 100%;
+  padding: 16px 28px;
+  border: 2px solid var(--accent);
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
   color: var(--accent-contrast);
   font: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: background-size var(--button-motion), border-color var(--button-motion), transform var(--button-motion), box-shadow var(--button-motion);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 25%, transparent), 0 3px 6px rgba(0, 0, 0, 0.15);
+  transition: all 300ms var(--ease-smooth);
 }
 
 .btn-submit.is-loading {
@@ -1119,20 +1177,22 @@ html.icons-ready .app-icon {
 }
 
 .btn-submit:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--accent) 35%, transparent), 0 6px 12px rgba(0, 0, 0, 0.2);
   border-color: var(--accent-hover);
-  background-size: 100% 100%, 100% 100%;
-  transform: translateY(-3px);
-  box-shadow: 0 12px 22px color-mix(in srgb, var(--accent) 28%, transparent), 0 0 0 4px color-mix(in srgb, var(--accent) 9%, transparent);
+  background: linear-gradient(135deg, var(--accent-hover) 0%, var(--accent) 100%);
 }
 
 .btn-submit:active {
-  transform: translateY(0);
-  box-shadow: none;
+  transform: translateY(-1px) scale(0.98);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 25%, transparent), 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .btn-submit:disabled {
-  cursor: wait;
-  opacity: 0.65;
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+  box-shadow: none;
 }
 
 .status-bar {
