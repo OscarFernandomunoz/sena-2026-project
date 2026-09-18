@@ -1,0 +1,55 @@
+// Busca y devuelve el botón Consultar del diálogo de instructor.
+function findExactSearchButton(): HTMLElement | null {
+  console.log('🔍 [BOTÓN] Buscando botón Consultar específico...');
+  
+  // Buscar específicamente el botón con ID terminando en :btnSearch y value="Consultar"
+  const searchButton = document.querySelector<HTMLElement>(
+    'input[type="submit"][id$=":btnSearch"][value="Consultar"], ' +
+    'input[type="button"][id$=":btnSearch"][value="Consultar"], ' +
+    'button[id$=":btnSearch"]'
+  );
+  
+  if (searchButton) {
+    const rect = searchButton.getBoundingClientRect();
+    console.log('✅ [BOTÓN] Botón encontrado:');
+    console.log(`   ID: ${searchButton.id}`);
+    console.log(`   Name: ${searchButton.getAttribute('name')}`);
+    console.log(`   Value: ${searchButton.getAttribute('value')}`);
+    console.log(`   Class: ${searchButton.className}`);
+    console.log(`   Ubicación: (${rect.left.toFixed(0)}, ${rect.top.toFixed(0)})`);
+    console.log(`   Tamaño: ${rect.width.toFixed(0)}x${rect.height.toFixed(0)}`);
+    console.log(`   Visible: ${rect.width > 0 && rect.height > 0}`);
+    
+    // Scroll hacia el botón
+    searchButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    return searchButton;
+  }
+  
+  console.log('❌ [BOTÓN] No se encontró el botón con ID terminando en :btnSearch y value="Consultar"');
+  
+  // Búsqueda alternativa: cualquier botón con value="Consultar"
+  const consultarButtons = Array.from(document.querySelectorAll<HTMLElement>(
+    'input[type="submit"][value="Consultar"], input[type="button"][value="Consultar"], button'
+  )).filter(btn => {
+    const text = (btn.textContent || '').trim().toLowerCase();
+    return text === 'consultar';
+  });
+  
+  console.log(`🔍 [BOTÓN] Botones alternativos con texto "Consultar": ${consultarButtons.length}`);
+  
+  if (consultarButtons.length > 0) {
+    const button = consultarButtons[0];
+    const rect = button.getBoundingClientRect();
+    console.log('✅ [BOTÓN] Botón alternativo encontrado:');
+    console.log(`   ID: ${button.id}`);
+    console.log(`   Texto: ${button.textContent?.trim()}`);
+    console.log(`   Ubicación: (${rect.left.toFixed(0)}, ${rect.top.toFixed(0)})`);
+    
+    button.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return button;
+  }
+  
+  console.log('❌ [BOTÓN] No se encontró ningún botón "Consultar"');
+  return null;
+}

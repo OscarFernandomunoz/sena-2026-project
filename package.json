@@ -10,14 +10,13 @@
     "watch": "node scripts/build.mjs --watch",
     "lint": "eslint .",
     "dev": "node scripts/dev.mjs",
-    "start": "npm run lint && npm run build && electron ."
+    "start": "npm run lint && npm run build && npx electron . --no-sandbox"
   },
   "author": {
     "name": "Oscar Fernando"
   },
   "private": true,
   "license": "ISC",
-  "type": "module",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.2.0",

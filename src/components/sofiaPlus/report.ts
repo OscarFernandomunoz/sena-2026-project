@@ -105,182 +105,222 @@ export async function selectCitizenshipId(): Promise<boolean> {
 
 // Escribe la primera identificación del archivo en el campo del diálogo de instructor.
 export async function fillInstructorIdentification(identification: string): Promise<boolean> {
-  const input = document.querySelector<HTMLInputElement>('input[id$="inputIdentificacion"]')
-    ?? document.querySelector<HTMLInputElement>('input[id*="inputIdentificacion"]')
-    ?? document.querySelectorAll<HTMLInputElement>('input[type="text"], input[type="number"]')[1];
-  if (!(input instanceof HTMLInputElement) || !identification) {
-    console.log('❌ fillInstructorIdentification: Input o identificación faltante. input=', !!input, 'identification=', identification);
+  if (!identification) {
+    console.log('❌ fillInstructorIdentification: No se proporcionó identificación');
     return false;
   }
-  console.log('🔍 fillInstructorIdentification: Input encontrado. id=', input.id, 'valor previo=', input.value);
+
+  console.log('🎯 fillInstructorIdentification: CÉDULA A CONSULTAR:', identification);
+  console.log('🔍 fillInstructorIdentification: Buscando input de identificación...');
+
+  // Función auxiliar para verificar si un campo es de fecha
+  const isDateField = (input: HTMLInputElement): boolean => {
+    const text = [
+      input.type,
+      input.name,
+      input.id,
+      input.placeholder,
+      input.getAttribute('aria-label') ?? '',
+      input.parentElement?.textContent ?? '',
+    ].join(' ').toLocaleLowerCase();
+    return input.type === 'date' ||
+      text.includes('fecha') ||
+      text.includes('date') ||
+      text.includes('inicio') ||
+      text.includes('fin');
+  };
+
+  // Búsqueda más exhaustiva del input de identificación, excluyendo campos de fecha
+  const allInputs = Array.from(document.querySelectorAll<HTMLInputElement>('input[type="text"], input[type="number"]'))
+    .filter(inp => !isDateField(inp)); // Excluir campos de fecha
+
+  console.log('🔍 Total inputs encontrados (excluyendo fechas):', allInputs.length);
+
+  allInputs.forEach((inp, index) => {
+    console.log(`   [${index}] id="${inp.id}" name="${inp.name}" placeholder="${inp.placeholder || ''}" value="${inp.value}" visible=${inp.getClientRects().length > 0}`);
+  });
+
+  // Intentar encontrar por diferentes criterios
+  // 1. Por ID específico (prioridad más alta)
+  let input: HTMLInputElement | null = document.querySelector<HTMLInputElement>('input[id$="inputIdentificacion"]')
+    ?? document.querySelector<HTMLInputElement>('input[id*="inputIdentificacion"]')
+    ?? document.querySelector<HTMLInputElement>('input[id*="Identificacion"]')
+    ?? document.querySelector<HTMLInputElement>('input[id*="identificacion"]');
+
+  // Verificar que el encontrado no sea un campo de fecha
+  if (input && isDateField(input)) {
+    console.log('⚠️ fillInstructorIdentification: Input encontrado por ID pero es campo de fecha, ignorando...');
+    input = null;
+  }
+
+  // 2. Por nombre
+  if (!input) {
+    input = document.querySelector<HTMLInputElement>('input[name*="identificacion"]')
+      ?? document.querySelector<HTMLInputElement>('input[name*="Identificacion"]');
+
+    if (input && isDateField(input)) {
+      console.log('⚠️ fillInstructorIdentification: Input encontrado por nombre pero es campo de fecha, ignorando...');
+      input = null;
+    }
+  }
+
+  // 3. Por placeholder (solo si no contiene palabras de fecha)
+  if (!input) {
+    input = allInputs.find(inp => {
+      const placeholder = inp.placeholder?.toLowerCase() || '';
+      const hasIdKeywords = placeholder.includes('identificación') ||
+        placeholder.includes('documento') ||
+        placeholder.includes('cédula') ||
+        placeholder.includes('numero') ||
+        placeholder.includes('número');
+      const hasDateKeywords = placeholder.includes('fecha') ||
+        placeholder.includes('inicio') ||
+        placeholder.includes('fin');
+      return hasIdKeywords && !hasDateKeywords;
+    }) ?? null;
+  }
+
+  // 4. Por el segundo input visible después del select de tipo de identificación
+  if (!input) {
+    const visibleInputs = allInputs.filter(inp => inp.getClientRects().length > 0);
+    console.log('🔍 Inputs visibles (no fecha):', visibleInputs.length);
+
+    // Buscar el input que está cerca del select de tipo de identificación
+    const idTypeSelect = document.querySelector<HTMLSelectElement>('select[id$=":inputTipoIdentificacion"]')
+      ?? document.querySelector<HTMLSelectElement>('select[id*="inputTipoIdentificacion"]');
+
+    if (idTypeSelect && visibleInputs.length > 0) {
+      // Encontrar el input más cercano al select
+      const selectRect = idTypeSelect.getBoundingClientRect();
+      input = visibleInputs.reduce((closest, current) => {
+        const currentRect = current.getBoundingClientRect();
+        const currentDist = Math.hypot(currentRect.left - selectRect.left, currentRect.top - selectRect.top);
+        const closestRect = closest?.getBoundingClientRect();
+        const closestDist = closestRect ? Math.hypot(closestRect.left - selectRect.left, closestRect.top - selectRect.top) : Infinity;
+        return currentDist < closestDist ? current : closest;
+      }, null as HTMLInputElement | null);
+    } else if (visibleInputs.length >= 1) {
+      // Fallback: primer input visible que no sea de fecha
+      input = visibleInputs[0];
+    }
+  }
+
+  if (!(input instanceof HTMLInputElement)) {
+    console.log('❌ fillInstructorIdentification: No se encontró el input de identificación');
+    return false;
+  }
+
+  // Verificación final de seguridad
+  if (isDateField(input)) {
+    console.log('❌ fillInstructorIdentification: El input encontrado parece ser un campo de fecha, abortando para evitar corruption de datos');
+    return false;
+  }
+
+  console.log('✅ fillInstructorIdentification: Input encontrado. id=', input.id, 'name=', input.name);
+  console.log('📝 Valor antes:', input.value);
+
+  // Escribir el valor
   const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
   setter?.call(input, identification);
+  input.value = identification; // Doble aseguramiento
   input.dispatchEvent(new Event('input', { bubbles: true }));
   input.dispatchEvent(new Event('change', { bubbles: true }));
+  input.focus();
+
+  console.log('📝 Valor después:', input.value);
+
+  // Pequeño delay para que se pueda ver visualmente el número antes de continuar
+  await new Promise(resolve => setTimeout(resolve, 1500));
+
   input.blur();
   const ok = input.value === identification || input.value === String(identification).replace(/\D/g, '');
   console.log(ok ? '✅ fillInstructorIdentification: Identificación escrita correctamente: ' + input.value : '❌ fillInstructorIdentification: No se pudo escribir, quedó=' + input.value);
   return ok;
 }
 
-// Busca y devuelve la posición del botón Consultar del diálogo de instructor.
+// Busca y devuelve el botón Consultar del diálogo de instructor.
 function findExactSearchButton(): HTMLElement | null {
-  const normalize = (text: string): string => text.trim().toLocaleLowerCase();
-  const isVisibleLoose = (element: HTMLElement): boolean => {
-    const style = window.getComputedStyle(element);
-    if (style.visibility === 'hidden' || style.display === 'none') return false;
-    const rect = element.getBoundingClientRect();
-    return rect.width > 40 && rect.height > 18;
-  };
-  const scrollIntoViewIfNeeded = (element: HTMLElement): void => {
-    try {
-      const scrollable = element.closest<HTMLElement>('div, form, section, td, tr, body') || document.body;
-      const rect = element.getBoundingClientRect();
-      if (rect.top < 40 || rect.bottom > (window.innerHeight - 40)) {
-        scrollable.scrollTop = (element.offsetTop ?? 0) - 60;
-      }
-      element.scrollIntoView?.({ behavior: 'auto', block: 'center', inline: 'center' });
-    } catch { /* ignore */ }
-  };
+  console.log('🔍 [BOTÓN] Buscando botón Consultar específico...');
 
-  // PRIORIDAD 0) ID exacto conocido por captura (j_id_jsp_XXX:btnSearch) + sufijo :btnSearch
-  const KNOWN_ID_SUFFIXES = [':btnSearch', ':btSearch', '_btnSearch', '_btSearch'];
-  for (const suffix of KNOWN_ID_SUFFIXES) {
-    const byId = document.querySelector<HTMLElement>(`input[type="button"][id$="${suffix}"], input[type="submit"][id$="${suffix}"], button[id$="${suffix}"]`);
-    if (byId && isVisibleLoose(byId)) {
-      console.log(`🎯 [DETECTIVE] ✅ ENCONTRADO por ID sufijo CONOCIDO '${suffix}': id="${byId.id}" name="${byId.getAttribute('name') ?? ''}" class="${byId.className}"`);
-      scrollIntoViewIfNeeded(byId);
-      return byId;
-    }
-  }
-  for (const suffix of KNOWN_ID_SUFFIXES) {
-    const byName = document.querySelector<HTMLElement>(`input[type="button"][name$="${suffix}"], input[type="submit"][name$="${suffix}"]`);
-    if (byName && isVisibleLoose(byName)) {
-      console.log(`🎯 [DETECTIVE] ✅ ENCONTRADO por NAME sufijo CONOCIDO '${suffix}': name="${byName.getAttribute('name') ?? ''}" id="${byName.id}"`);
-      scrollIntoViewIfNeeded(byName);
-      return byName;
-    }
+  // Buscar específicamente el botón con ID terminando en :btnSearch y value="Consultar"
+  const searchButton = document.querySelector<HTMLElement>(
+    'input[type="submit"][id$=":btnSearch"][value="Consultar"], ' +
+    'input[type="button"][id$=":btnSearch"][value="Consultar"], ' +
+    'button[id$=":btnSearch"]'
+  );
+
+  if (searchButton) {
+    const rect = searchButton.getBoundingClientRect();
+    console.log('✅ [BOTÓN] Botón encontrado:');
+    console.log(`   ID: ${searchButton.id}`);
+    console.log(`   Name: ${searchButton.getAttribute('name')}`);
+    console.log(`   Value: ${searchButton.getAttribute('value')}`);
+    console.log(`   Class: ${searchButton.className}`);
+    console.log(`   Ubicación: (${rect.left.toFixed(0)}, ${rect.top.toFixed(0)})`);
+    console.log(`   Tamaño: ${rect.width.toFixed(0)}x${rect.height.toFixed(0)}`);
+    console.log(`   Visible: ${rect.width > 0 && rect.height > 0}`);
+
+    // Scroll hacia el botón
+    searchButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    return searchButton;
   }
 
-  // 1) Buscar por ID o NAME con sufijos típicos adicionales de JSF
-  const idSuffixes = [':btnConsultar', '_btnConsultar', ':consultar', ':btConsultar', ':buscar', ':btnBuscar'];
-  for (const suffix of idSuffixes) {
-    const byId = document.querySelector<HTMLElement>(`[id$="${suffix}"]`);
-    if (byId && isVisibleLoose(byId)) {
-      console.log(`🔎 [DETECTIVE] Encontrado por ID sufijo '${suffix}':`, byId.id);
-      scrollIntoViewIfNeeded(byId);
-      return byId;
-    }
-  }
-  for (const suffix of idSuffixes) {
-    const byName = document.querySelector<HTMLElement>(`[name$="${suffix}"]`);
-    if (byName && isVisibleLoose(byName)) {
-      console.log(`🔎 [DETECTIVE] Encontrado por NAME sufijo '${suffix}':`, byName.getAttribute('name'));
-      scrollIntoViewIfNeeded(byName);
-      return byName;
-    }
-  }
+  console.log('❌ [BOTÓN] No se encontró el botón con ID terminando en :btnSearch y value="Consultar"');
 
-  // 2) Buscar por selector exacto de clase del botón azul (igual que la captura)
-  const exactClassSelector = 'input.btn.btn-info.btn-block, input.btn.btn-primary.btn-block, button.btn.btn-info.btn-block';
-  const classMatches = Array.from(document.querySelectorAll<HTMLElement>(exactClassSelector)).filter(isVisibleLoose);
-  if (classMatches.length) {
-    const best = classMatches.sort((a, b) => {
-      const areaA = a.getBoundingClientRect().width * a.getBoundingClientRect().height;
-      const areaB = b.getBoundingClientRect().width * b.getBoundingClientRect().height;
-      return areaB - areaA;
-    })[0];
-    console.log('🎯 [DETECTIVE] ✅ ENCONTRADO por SELECTOR CLASES (btn-info btn-block):', best.id, best.className);
-    scrollIntoViewIfNeeded(best);
-    return best;
-  }
-
-  // 2b) Cualquier botón con btn-info o btn-block (match más amplio)
-  const looseClassMatches = Array.from(document.querySelectorAll<HTMLElement>(
-    'input[type="button"], input[type="submit"], button',
-  )).filter((el) => {
-    const classes = (el.className || '').toString().toLocaleLowerCase();
-    return classes.includes('btn-info') || classes.includes('btn-block') || classes.includes('btn-search') || classes.includes('btn-primary');
-  }).filter(isVisibleLoose);
-  if (looseClassMatches.length) {
-    const best = looseClassMatches.sort((a, b) => {
-      const areaA = a.getBoundingClientRect().width * a.getBoundingClientRect().height;
-      const areaB = b.getBoundingClientRect().width * b.getBoundingClientRect().height;
-      return areaB - areaA;
-    })[0];
-    console.log('🔎 [DETECTIVE] Encontrado por CLASES (btn-info/btn-block/primary):', best.id, best.className);
-    scrollIntoViewIfNeeded(best);
-    return best;
-  }
-
-  // 3) Buscar por texto "Consultar" en value o textContent en TODO el documento
-  const allCandidates = Array.from(document.querySelectorAll<HTMLElement>(
-    'input[type="button"], input[type="submit"], button, a[role="button"]',
-  )).filter((element) => {
-    const label = [
-      element.getAttribute('value') ?? '',
-      element.textContent ?? '',
-      element.getAttribute('aria-label') ?? '',
-      element.getAttribute('name') ?? '',
-      element.id ?? '',
-      element.getAttribute('title') ?? '',
-    ].map(normalize).join(' ');
-    return label.includes('consultar') && isVisibleLoose(element);
+  // Búsqueda alternativa: cualquier botón con value="Consultar"
+  const consultarButtons = Array.from(document.querySelectorAll<HTMLElement>(
+    'input[type="submit"][value="Consultar"], input[type="button"][value="Consultar"], button'
+  )).filter(btn => {
+    const text = (btn.textContent || '').trim().toLowerCase();
+    return text === 'consultar';
   });
 
-  console.log(`🔎 [DETECTIVE] Total botones con "Consultar" visibles: ${allCandidates.length}`);
-  allCandidates.forEach((c, i) => {
-    const r = c.getBoundingClientRect();
-    const id = c.id || 'no-id';
-    const nm = c.getAttribute('name') || 'no-name';
-    const cls = c.className || 'no-class';
-    console.log(`   [${i + 1}] ID=${id} NAME=${nm} CLASS=${cls} RECT=(${r.width.toFixed(0)}x${r.height.toFixed(0)}) POS=(${r.left.toFixed(0)},${r.top.toFixed(0)}) value="${c.getAttribute('value') ?? ''}" text="${(c.textContent ?? '').trim().slice(0, 30)}"`);
-  });
+  console.log(`🔍 [BOTÓN] Botones alternativos con texto "Consultar": ${consultarButtons.length}`);
 
-  // Si hay candidatos, tomar el más cercano al input de identificación
-  const identifierInput = document.querySelector<HTMLInputElement>('input[id*="inputIdentificacion"]');
-  const inputRect = identifierInput?.getBoundingClientRect();
-  const best = allCandidates.length === 0 ? null : allCandidates
-    .map((c) => ({
-      el: c,
-      dist: inputRect
-        ? Math.hypot((c.getBoundingClientRect().left - inputRect.left), (c.getBoundingClientRect().top - inputRect.top))
-        : -(c.getBoundingClientRect().width * c.getBoundingClientRect().height),
-    }))
-    .sort((a, b) => a.dist - b.dist)[0]?.el ?? allCandidates[0];
+  if (consultarButtons.length > 0) {
+    const button = consultarButtons[0];
+    const rect = button.getBoundingClientRect();
+    console.log('✅ [BOTÓN] Botón alternativo encontrado:');
+    console.log(`   ID: ${button.id}`);
+    console.log(`   Texto: ${button.textContent?.trim()}`);
+    console.log(`   Ubicación: (${rect.left.toFixed(0)}, ${rect.top.toFixed(0)})`);
 
-  if (best) {
-    console.log('🔎 [DETECTIVE] Elegido (más cercano a cédula / mayor área):', best.id, best.getAttribute('name'), best.className);
-    scrollIntoViewIfNeeded(best);
-    return best;
+    button.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return button;
   }
-  console.log('❌ [DETECTIVE] NO SE ENCONTRÓ NINGÚN BOTÓN "CONSULTAR" VISIBLE EN EL DOCUMENTO.');
-  console.log('   Revisando... total botones=', document.querySelectorAll('input[type="button"], input[type="submit"], button').length);
+
+  console.log('❌ [BOTÓN] No se encontró ningún botón "Consultar"');
   return null;
-}
-
-export async function findInstructorSearchButton(): Promise<ClickPoint | null> {
-  const button = findExactSearchButton();
-  if (!button) return null;
-  if (button.getClientRects().length === 0) return null;
-  const rect = button.getBoundingClientRect();
-  let x = rect.left + (rect.width / 2);
-  let y = rect.top + (rect.height / 2);
-  let currentWindow: Window = window;
-  while (currentWindow.frameElement) {
-    const frameRect = currentWindow.frameElement.getBoundingClientRect();
-    x += frameRect.left;
-    y += frameRect.top;
-    currentWindow = currentWindow.parent;
-  }
-  console.log(`Botón Consultar encontrado. ID: ${button.id}. Name: ${button.getAttribute('name')}. Clases: ${button.className}. Coordenadas: (${x}, ${y})`);
-  return { x, y };
 }
 
 export async function clickInstructorSearchButton(): Promise<boolean> {
   const button = findExactSearchButton();
-  if (!button || button.getClientRects().length === 0) return false;
+  if (!button || button.getClientRects().length === 0) {
+    console.log('❌ clickInstructorSearchButton: No se encontró el botón Consultar o no es visible');
+    return false;
+  }
 
+  console.log('✅ clickInstructorSearchButton: Botón encontrado, preparando click...');
+  console.log(`   ID: ${button.id}`);
+  console.log(`   Name: ${button.getAttribute('name')}`);
+  console.log(`   Class: ${button.className}`);
+  console.log(`   Value: ${button.getAttribute('value')}`);
+
+  // Asegurar que el botón esté visible y scroll hacia él
+  button.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  // Esperar un momento para que el scroll se complete
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  const rect = button.getBoundingClientRect();
+
+  console.log('🎯 clickInstructorSearchButton: UBICACIÓN DEL BOTÓN ANTES DEL CLICK:');
+  console.log(`   Coordenadas: (${rect.left.toFixed(0)}, ${rect.top.toFixed(0)})`);
+  console.log(`   Tamaño: ${rect.width.toFixed(0)}x${rect.height.toFixed(0)}`);
+  console.log(`   Centro: (${(rect.left + rect.width / 2).toFixed(0)}, ${(rect.top + rect.height / 2).toFixed(0)})`);
+
+  // Crear marcador visual para debug
   const root = document.body ?? document.documentElement;
   const markerId = '__sofiaClickDebugMarker__';
   let marker = document.getElementById(markerId) as HTMLDivElement | null;
@@ -290,7 +330,6 @@ export async function clickInstructorSearchButton(): Promise<boolean> {
     root.appendChild(marker);
   }
 
-  const rect = button.getBoundingClientRect();
   marker.style.position = 'fixed';
   marker.style.left = `${rect.left}px`;
   marker.style.top = `${rect.top}px`;
@@ -313,16 +352,24 @@ export async function clickInstructorSearchButton(): Promise<boolean> {
   marker.style.lineHeight = '1';
   marker.textContent = `CLICK [${button.id || 'no-id'}]`;
 
-  console.log('Marcador de clic activado en el botón Consultar del diálogo.', {
-    id: button.id,
-    name: button.getAttribute('name'),
-    class: button.className,
-    left: rect.left,
-    top: rect.top,
-    width: rect.width,
-    height: rect.height,
-  });
-  return true;
+  console.log('🎯 clickInstructorSearchButton: Ejecutando click en el botón...');
+
+  // Ejecutar el click real
+  try {
+    button.click();
+    console.log('✅ clickInstructorSearchButton: Click ejecutado exitosamente');
+    console.log(`📍 UBICACIÓN DEL CLICK: (${(rect.left + rect.width / 2).toFixed(0)}, ${(rect.top + rect.height / 2).toFixed(0)})`);
+
+    // Disparar eventos adicionales para asegurar que el onclick se ejecute
+    button.dispatchEvent(new Event('click', { bubbles: true, cancelable: true }));
+    button.dispatchEvent(new Event('mousedown', { bubbles: true }));
+    button.dispatchEvent(new Event('mouseup', { bubbles: true }));
+
+    return true;
+  } catch (error) {
+    console.log('❌ clickInstructorSearchButton: Error al ejecutar click:', error);
+    return false;
+  }
 }
 
 export async function instructorResultsLoaded(): Promise<boolean> {

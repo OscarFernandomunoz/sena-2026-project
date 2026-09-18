@@ -8,7 +8,7 @@ import {
   openAspiranteOptions,
   selectCurriculumOption,
 } from './navigation.js';
-import { fillInstructorIdentification, fillReportDates, findInstructorPicker, findInstructorSearchButton, instructorResultsLoaded, openIdentificationTypeSelect, selectCitizenshipId } from './report.js';
+import { fillInstructorIdentification, fillReportDates, findInstructorPicker, clickInstructorSearchButton, instructorResultsLoaded, openIdentificationTypeSelect, selectCitizenshipId } from './report.js';
 import type { SofiaCredentials } from './types.js';
 
 // Este archivo orquesta el flujo principal de automatización de SofiaPlus.
@@ -140,9 +140,9 @@ export async function openSofiaPlus(credentials: SofiaCredentials): Promise<void
   await booleanScript(window, `(${fillInstructorIdentification.toString()})(${JSON.stringify(credentials.identification)})`, 'No se encontró el campo de identificación del instructor.');
 
   void showStepBanner(window, 10, '🔵 Pulsando botón Consultar del diálogo');
-  await clickScript(
+  await booleanScript(
     window,
-    `(${findInstructorSearchButton.toString()})()`,
+    `(${clickInstructorSearchButton.toString()})()`,
     'No se encontró el botón Consultar del instructor.',
   );
 

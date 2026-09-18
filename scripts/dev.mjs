@@ -64,6 +64,45 @@ function scheduleRebuild() {
   changeTimer = setTimeout(() => void rebuild(), 150);
 }
 
+// Primero compilar el main process con esbuild
+console.log('Compilando main process para desarrollo...');
+const mainBuildProcess = spawn(process.execPath, [
+  'node_modules/esbuild/esbuild',
+  'src/main/index.ts',
+  '--platform=node',
+  '--target=node20',
+  '--format=cjs',
+  '--outfile=dist/main/index.js',
+  '--external=electron',
+  '--bundle'
+], {
+  cwd: rootDir,
+  stdio: 'inherit',
+});
+
+await new Promise((resolve) => mainBuildProcess.on('close', resolve));
+
+// Compilar preload
+console.log('Compilando preload para desarrollo...');
+const preloadBuildProcess = spawn(process.execPath, [
+  'node_modules/esbuild/esbuild',
+  'src/preload/index.ts',
+  '--platform=node',
+  '--target=node20',
+  '--format=cjs',
+  '--outfile=dist/preload/index.js',
+  '--external=electron',
+  '--bundle'
+], {
+  cwd: rootDir,
+  stdio: 'inherit',
+});
+
+await new Promise((resolve) => preloadBuildProcess.on('close', resolve));
+
+// Correr el build normal para el renderer
+await runBuild();
+
 await rebuild();
 
 const sourceWatcher = watch(resolve(rootDir, 'src'), { recursive: true }, scheduleRebuild);

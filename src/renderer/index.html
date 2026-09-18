@@ -159,6 +159,21 @@
                 <input type="date" id="fechaFin" class="input-control" required />
               </div>
             </div>
+            <div class="form-group">
+              <label for="identificacion">Cédula instructor:</label>
+              <div class="input-wrapper">
+                <svg class="app-icon input-icon is-visible" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+                  style="--icon-delay: 90ms;">
+                  <rect class="svg-icon-path" x="4" y="11" width="16" height="10" rx="2" stroke="currentColor"
+                    stroke-width="2" />
+                  <path class="svg-icon-path" d="M8 11V7.5C8 5.3 9.8 3.5 12 3.5s4 1.8 4 4V11" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" />
+                  <circle class="svg-lock-core" cx="12" cy="16" r="1.2" fill="currentColor" opacity="0.85" />
+                </svg>
+                <input type="text" id="identificacion" class="input-control" placeholder="Extraída del Excel"
+                  required />
+              </div>
+            </div>
           </form>
           <div class="dropzone" id="dropzone">
             <input type="file" id="fileInput" accept=".xls, .xlsx" required />
