@@ -10,7 +10,7 @@
     "build": "tsx scripts/build.ts",
     "watch": "tsx scripts/build.ts --watch",
     "lint": "eslint .",
-    "dev": "node scripts/dev.mjs",
+    "dev": "tsx scripts/dev.ts",
     "start": "npm run lint && npm run build && npx electron ."
   },
   "author": {
