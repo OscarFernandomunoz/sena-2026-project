@@ -22,6 +22,7 @@ function getElements(): AppElements {
     inputPass: document.getElementById('password') as HTMLInputElement,
     inputStartDate: document.getElementById('fechaInicio') as HTMLInputElement,
     inputEndDate: document.getElementById('fechaFin') as HTMLInputElement,
+    inputIdentification: document.getElementById('identificacion') as HTMLInputElement,
     themeToggle: document.getElementById('themeToggle') as HTMLButtonElement,
   };
 }

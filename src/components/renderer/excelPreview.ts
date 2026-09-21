@@ -8,7 +8,7 @@ const REQUIRED_COLUMN_NAMES = [REQUIRED_COLUMN_NAME, ALTERNATIVE_COLUMN_NAME];
 const REQUIRED_COLUMN_LABEL = `${REQUIRED_COLUMN_NAME} o ${ALTERNATIVE_COLUMN_NAME}`;
 const DROPZONE_HINT = `Arrastra y suelta tu archivo de nómina aquí (.xls, .xlsx). Obligatorio. Debe incluir ${REQUIRED_COLUMN_LABEL}.`;
 
-type FileElements = Pick<AppElements, 'dropzone' | 'fileInput' | 'dropzoneText' | 'excelPreview' | 'statusMessage'>;
+type FileElements = Pick<AppElements, 'dropzone' | 'fileInput' | 'dropzoneText' | 'excelPreview' | 'statusMessage' | 'inputIdentification'>;
 
 export function initFileHandling(elements: FileElements, state: FileUploadState): void {
   elements.dropzone.addEventListener('click', () => elements.fileInput.click());
@@ -73,9 +73,15 @@ async function previewExcel(file: File, elements: FileElements, state: FileUploa
     });
     state.file = file;
     state.firstIdentification = firstIdentification;
+    if (firstIdentification && elements.inputIdentification) {
+      elements.inputIdentification.value = firstIdentification;
+      elements.statusMessage.textContent = `Cédula instructor extraída del Excel: ${firstIdentification}. ${REQUIRED_COLUMN_LABEL} presente.`;
+    }
     elements.dropzone.classList.remove('dropzone-error');
     elements.excelPreview.replaceChildren(fragment);
-    elements.statusMessage.textContent = `Información de ${file.name} lista para revisar. ${REQUIRED_COLUMN_LABEL} presente.`;
+    if (!firstIdentification) {
+      elements.statusMessage.textContent = `Información de ${file.name} lista para revisar. ${REQUIRED_COLUMN_LABEL} presente, pero no se encontraron cédulas válidas.`;
+    }
   } catch {
     rejectFile(elements, state, 'No se pudo leer este archivo Excel.');
   }
