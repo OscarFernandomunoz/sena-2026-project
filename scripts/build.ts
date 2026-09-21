@@ -21,7 +21,7 @@ async function build(): Promise<void> {
     process.exit(1);
   }
 
-  // 3. Copia de archivos estáticos seguras
+  // 3. Copia de archivos estáticos
   console.log('📁 Copiando archivos estáticos...');
   const distRendererDir = resolve(rootDir, 'dist/renderer');
   const distImagesDir = resolve(distRendererDir, 'images');
@@ -46,7 +46,7 @@ async function build(): Promise<void> {
     }
   }
 
-  // 4. Configuración compartida con tipo estricto de esbuild
+  // 4. Configuración compartida
   const sharedConfig: esbuild.BuildOptions = {
     bundle: true,
     minify: !isDev,
@@ -54,37 +54,37 @@ async function build(): Promise<void> {
     tsconfig: resolve(rootDir, 'tsconfig.json'),
   };
 
-  // 5. Especificación por proceso de Electron
+  // 5. Especificación por proceso de Electron (TODO en ESM y extensión .js)
   const mainConfig: esbuild.BuildOptions = {
     ...sharedConfig,
     entryPoints: [resolve(rootDir, 'src/main/index.ts')],
-    outfile: resolve(rootDir, 'dist/main/index.cjs'), // <-- .cjs
+    outfile: resolve(rootDir, 'dist/main/index.js'), // <-- Extensión .js
     platform: 'node',
     target: 'node20',
-    format: 'cjs', // <-- CommonJS para evitar errores en Main
+    format: 'esm', // <-- ESM
     external: ['electron'],
   };
 
   const preloadConfig: esbuild.BuildOptions = {
     ...sharedConfig,
     entryPoints: [resolve(rootDir, 'src/preload/index.ts')],
-    outfile: resolve(rootDir, 'dist/preload/index.cjs'), // <-- .cjs
+    outfile: resolve(rootDir, 'dist/preload/index.js'), // <-- Extensión .js
     platform: 'node',
     target: 'node20',
-    format: 'cjs', // <-- CommonJS para evitar errores en Preload
+    format: 'esm', // <-- ESM
     external: ['electron'],
   };
 
   const rendererConfig: esbuild.BuildOptions = {
     ...sharedConfig,
     entryPoints: [resolve(rootDir, 'src/renderer/index.ts')],
-    outfile: resolve(rootDir, 'dist/renderer/index.js'), // <-- .js
+    outfile: resolve(rootDir, 'dist/renderer/index.js'), // <-- Extensión .js
     platform: 'browser',
     target: 'chrome120',
-    format: 'esm', // <-- ESM nativo para Chromium
+    format: 'esm', // <-- ESM
   };
 
-  // 6. Bundling paralelo multitarea
+  // 6. Bundling paralelo
   console.log('📦 Empaquetando Main, Preload y Renderer...');
   try {
     await Promise.all([

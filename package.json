@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Time Instructor Management System",
-  "main": "dist/main/index.cjs",
+  "main": "dist/main/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsx scripts/build.ts",
