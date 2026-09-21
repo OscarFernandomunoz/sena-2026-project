@@ -2,6 +2,8 @@ import { app, BrowserWindow } from 'electron';
 import { registerIpcHandlers } from '../components/ipcHandlers.js';
 import { createMainWindow } from '../components/windowManager.js';
 
+app.commandLine.appendSwitch('ignore-certificate-errors');
+
 // El proceso principal inicializa la app, registra los canales IPC y crea la ventana principal.
 app.whenReady().then(() => {
   try {

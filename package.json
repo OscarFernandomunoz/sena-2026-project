@@ -2,15 +2,16 @@
   "$schema": "https://json.schemastore.org/package.json",
   "name": "tims",
   "version": "0.1.0",
+  "type": "module",
   "description": "Time Instructor Management System",
-  "main": "dist/main/index.js",
+  "main": "dist/main/index.cjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "node scripts/build.mjs",
-    "watch": "node scripts/build.mjs --watch",
+    "build": "tsx scripts/build.ts",
+    "watch": "tsx scripts/build.ts --watch",
     "lint": "eslint .",
     "dev": "node scripts/dev.mjs",
-    "start": "npm run lint && npm run build && npx electron . --no-sandbox"
+    "start": "npm run lint && npm run build && npx electron ."
   },
   "author": {
     "name": "Oscar Fernando"
@@ -24,6 +25,7 @@
     "esbuild": "0.28.2",
     "eslint": "^10.8.1",
     "prettier": "^3.9.6",
+    "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.67.0"
   },

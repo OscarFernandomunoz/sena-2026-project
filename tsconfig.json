@@ -6,8 +6,8 @@
       "DOM",
       "DOM.Iterable"
     ],
-    "module": "CommonJS",
-    "moduleResolution": "bundler",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "moduleDetection": "force",
     "strict": true,
     "esModuleInterop": true,
@@ -20,8 +20,7 @@
     "rootDir": "./src",
     "types": [
       "node"
-    ],
-    "ignoreDeprecations": "6.0"
+    ]
   },
   "include": [
     "src/main/**/*.ts",
@@ -29,11 +28,5 @@
     "src/components/windowManager.ts",
     "src/components/sofiaPlus/**/*.ts",
     "src/preload/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "src/renderer",
-    "src/components/renderer"
   ]
 }
