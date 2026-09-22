@@ -888,6 +888,18 @@ html.icons-ready .app-icon {
   min-width: 0;
 }
 
+/* El contenedor de la barra de título es arrastrable */
+.title-bar {
+  -webkit-app-region: drag;
+}
+
+/* IMPORTANTE: Los botones DEBEN ignorar el drag para ser clickeables */
+#minimizeButton,
+#maximizeButton,
+#closeButton {
+  -webkit-app-region: no-drag;
+}
+
 .dropzone-icon {
   position: relative;
   flex: 0 0 auto;

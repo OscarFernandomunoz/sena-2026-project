@@ -117,7 +117,9 @@ async function dev(): Promise<void> {
     outfile: resolve(rootDir, 'dist/preload/index.js'),
     platform: 'node',
     target: 'node20',
-    format: 'esm',
+    // El preload SIEMPRE debe ser CommonJS: con `sandbox: true` Electron
+    // no puede cargarlo como ESM y `window.electronAPI` quedaría indefinido.
+    format: 'cjs',
     external: ['electron'],
     plugins: [reloadElectronPlugin('Preload')],
   });

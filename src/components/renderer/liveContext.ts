@@ -38,11 +38,23 @@ async function updateWeather(latitude: number, longitude: number, elements: Pick
     const data = await response.json() as { current?: { temperature_2m: number; weather_code: number } };
     if (!data.current) throw new Error('Weather data unavailable');
     elements.weather.textContent = `${Math.round(data.current.temperature_2m)} °C · ${weatherDescription(data.current.weather_code)}`;
-    elements.weatherIcon.className = `fa-solid ${weatherIconClass(data.current.weather_code)}`;
+    setWeatherIconClass(elements.weatherIcon, `fa-solid ${weatherIconClass(data.current.weather_code)}`);
   } catch {
     elements.weather.textContent = 'Clima no disponible';
-    elements.weatherIcon.className = 'fa-solid fa-cloud-exclamation';
+    setWeatherIconClass(elements.weatherIcon, 'fa-solid fa-cloud-exclamation');
   }
+}
+
+// En un <svg>, `className` es de solo lectura (SVGAnimatedString): asignarlo lanza
+// un TypeError que rompía initLiveContext. Además, las clases de FontAwesome no
+// dibujan nada sobre un <svg>, así que ahí solo se marca el estado con un atributo
+// y se conservan las clases originales del icono.
+function setWeatherIconClass(icon: Element, value: string): void {
+  if (icon instanceof SVGElement) {
+    icon.setAttribute('data-weather', value);
+    return;
+  }
+  icon.setAttribute('class', value);
 }
 
 function weatherDescription(code: number): string {

@@ -71,7 +71,9 @@ async function build(): Promise<void> {
     outfile: resolve(rootDir, 'dist/preload/index.js'), // <-- Extensión .js
     platform: 'node',
     target: 'node20',
-    format: 'esm', // <-- ESM
+    // El preload SIEMPRE debe ser CommonJS: Electron lo ejecuta en un sandbox
+    // que no soporta ESM (con `sandbox: true` fallaría con "Unable to load preload script").
+    format: 'cjs',
     external: ['electron'],
   };
 
