@@ -1,4 +1,4 @@
-import { BrowserWindow, type WebFrameMain } from 'electron';
+import { BrowserWindow, webContents, type WebContents, type WebFrameMain } from 'electron';
 import type { ClickPoint } from './types.js';
 
 // Este módulo encapsula la ejecución de scripts dentro de la ventana de SofiaPlus.
@@ -36,6 +36,71 @@ export async function patchSofiaPageGuards(window: BrowserWindow): Promise<void>
   await executeInFrames(window, patchBlockUiScript(), Boolean, 5);
 }
 
+// Reúne todos los frames sobre los que se puede inyectar el script.
+// Además de los frames de la ventana principal, incluye las ventanas emergentes
+// (window.open) del propio sitio: el diálogo del instructor puede abrirse en un popup
+// y ese popup NO forma parte del árbol de frames de la ventana original.
+const childWindows = new WeakMap<BrowserWindow, Set<BrowserWindow>>();
+
+// Registra la ventana de SofiaPlus y las ventanas emergentes que abra (a cualquier nivel)
+// para que executeInFrames también pueda inspeccionarlas.
+export function trackSofiaWindow(window: BrowserWindow): void {
+  if (!childWindows.has(window)) childWindows.set(window, new Set());
+
+  const track = (contents: WebContents): void => {
+    contents.on('did-create-window', (child: BrowserWindow) => {
+      const children = childWindows.get(window);
+      children?.add(child);
+      child.on('closed', () => children?.delete(child));
+      track(child.webContents);
+    });
+  };
+  track(window.webContents);
+}
+
+function collectFrames(window: BrowserWindow): WebFrameMain[] {
+  const frames: WebFrameMain[] = [];
+  const visited = new Set<number>();
+
+  const visitFrame = (frame: WebFrameMain): void => {
+    frames.push(frame);
+    for (const child of frame.frames) visitFrame(child);
+  };
+
+  const visitContents = (contents: WebContents): void => {
+    if (visited.has(contents.id) || contents.isDestroyed()) return;
+    visited.add(contents.id);
+    try {
+      visitFrame(contents.mainFrame);
+    } catch {
+      // El webContents puede estar cambiando de página justo en este instante.
+    }
+  };
+
+  visitContents(window.webContents);
+
+  // Ventanas emergentes creadas por esta ventana (diálogo de instructor, etc.).
+  for (const child of childWindows.get(window) ?? []) {
+    if (child.isDestroyed()) continue;
+    visitContents(child.webContents);
+  }
+
+  // Cualquier otra página de SofiaPlus abierta por la app (la principal usa file://
+  // y DevTools quedan fuera).
+  for (const contents of webContents.getAllWebContents()) {
+    if (visited.has(contents.id) || contents.isDestroyed()) continue;
+    let url: string;
+    try {
+      url = contents.getURL();
+    } catch {
+      continue;
+    }
+    if (url.includes('senasofiaplus')) visitContents(contents);
+  }
+
+  return frames;
+}
+
 // Ejecuta un fragmento de JavaScript en todos los frames activos de la ventana hasta que la condición sea verdadera.
 export async function executeInFrames<T>(
   window: BrowserWindow,
@@ -44,12 +109,7 @@ export async function executeInFrames<T>(
   attempts = 30,
 ): Promise<T | undefined> {
   for (let attempt = 0; attempt < attempts; attempt += 1) {
-    const frames: WebFrameMain[] = [];
-    const visit = (frame: WebFrameMain): void => {
-      frames.push(frame);
-      for (const child of frame.frames) visit(child);
-    };
-    visit(window.webContents.mainFrame);
+    const frames = collectFrames(window);
     for (const frame of frames) {
       try {
         const result = await frame.executeJavaScript(script) as T;

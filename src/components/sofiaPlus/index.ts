@@ -1,5 +1,5 @@
 import { BrowserWindow } from 'electron';
-import { booleanScript, clickScript, patchSofiaPageGuards, wait, executeInFrames } from './browser.js';
+import { booleanScript, clickScript, patchSofiaPageGuards, trackSofiaWindow, wait, executeInFrames } from './browser.js';
 import { fillSofiaInputs } from './login.js';
 import {
   findConsolidatedTimeOption,
@@ -80,6 +80,9 @@ async function loadWindow(): Promise<BrowserWindow> {
   });
   sofiaWindow = window;
   window.on('closed', () => { sofiaWindow = null; });
+  // Permite que executeInFrames alcance también las ventanas emergentes del sitio
+  // (el diálogo del instructor se abre con window.open).
+  trackSofiaWindow(window);
   window.webContents.session.webRequest.onBeforeRequest(
     { urls: ['http://senasofiaplus.edu.co//*'] },
     (details, callback) => {

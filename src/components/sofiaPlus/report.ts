@@ -243,133 +243,142 @@ export async function fillInstructorIdentification(identification: string): Prom
   return ok;
 }
 
+// Normaliza texto (minúsculas, sin acentos, sin espacios sobrantes) para poder comparar.
+function normalizeText(value: string | null | undefined): string {
+  return (value ?? '').trim().toLocaleLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+// Solo los controles que realmente pueden disparar la consulta.
+const CLICKABLE_SELECTOR =
+  'input[type="submit"], input[type="button"], input[type="image"], input[type="reset"], button, a, [role="button"], [onclick]';
+
+// Un control sirve únicamente si está visible y habilitado.
+function isUsable(control: HTMLElement): boolean {
+  return control.getClientRects().length > 0 && !control.hasAttribute('disabled');
+}
+
+// Devuelve todos los textos comparables de un control.
+// IMPORTANTE: en un <input> el texto visible vive en `value`, NO en textContent
+// (textContent siempre es ""), por eso el filtro anterior jamás hallaba un input.
+function controlText(control: HTMLElement): string {
+  const input = control as HTMLInputElement;
+  return normalizeText([
+    control.textContent ?? '',
+    input.value ?? '',
+    control.getAttribute('value') ?? '',
+    control.id,
+    control.getAttribute('name') ?? '',
+    control.getAttribute('title') ?? '',
+    control.getAttribute('aria-label') ?? '',
+  ].join(' '));
+}
+
+// Puntúa qué tan probable es que ese control sea el botón Consultar del diálogo.
+// 100 = id con forma de btnSearch, 80 = etiqueta exacta "Consultar", 60 = contiene la palabra.
+function searchScore(control: HTMLElement): number {
+  const id = normalizeText(control.id);
+  const label = normalizeText(control.textContent);
+  const value = normalizeText((control as HTMLInputElement).value) || normalizeText(control.getAttribute('value'));
+  if (id === 'btnsearch' || id.endsWith(':btnsearch')) return 100;
+  if (id.includes('btnsearch')) return 90;
+  if (label === 'consultar' || value === 'consultar') return 80;
+  if (controlText(control).includes('consultar')) return 60;
+  return 0;
+}
+
+// Distancia entre el control y el input de identificación; sirve de desempate para
+// quedarnos con el Consultar del mismo diálogo y no con otro de la página.
+function distanceToIdentificationField(control: HTMLElement): number {
+  const field = document.querySelector<HTMLElement>('input[id*="Identificacion"], input[id*="identificacion"]');
+  if (!field) return 0;
+  const controlRect = control.getBoundingClientRect();
+  const fieldRect = field.getBoundingClientRect();
+  return Math.hypot(controlRect.left - fieldRect.left, controlRect.top - fieldRect.top);
+}
+
 // Busca y devuelve el botón Consultar del diálogo de instructor.
 function findExactSearchButton(): HTMLElement | null {
-  console.log('🔍 [BOTÓN] Buscando botón Consultar específico...');
+  console.log('🔍 [BOTÓN] Buscando botón Consultar...');
 
-  // Buscar específicamente el botón con ID terminando en :btnSearch y value="Consultar"
-  const searchButton = document.querySelector<HTMLElement>(
-    'input[type="submit"][id$=":btnSearch"][value="Consultar"], ' +
-    'input[type="button"][id$=":btnSearch"][value="Consultar"], ' +
-    'button[id$=":btnSearch"]'
-  );
+  const controls = Array.from(document.querySelectorAll<HTMLElement>(CLICKABLE_SELECTOR));
+  const visible = controls.filter(isUsable);
 
-  if (searchButton) {
-    const rect = searchButton.getBoundingClientRect();
-    console.log('✅ [BOTÓN] Botón encontrado:');
-    console.log(`   ID: ${searchButton.id}`);
-    console.log(`   Name: ${searchButton.getAttribute('name')}`);
-    console.log(`   Value: ${searchButton.getAttribute('value')}`);
-    console.log(`   Class: ${searchButton.className}`);
-    console.log(`   Ubicación: (${rect.left.toFixed(0)}, ${rect.top.toFixed(0)})`);
-    console.log(`   Tamaño: ${rect.width.toFixed(0)}x${rect.height.toFixed(0)}`);
-    console.log(`   Visible: ${rect.width > 0 && rect.height > 0}`);
-
-    // Scroll hacia el botón
-    searchButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-    return searchButton;
+  // Primero se busca entre los controles visibles. Si no hay ninguno (el diálogo puede
+  // estar oculto o con una animación en curso) se usa cualquiera no deshabilitado:
+  // un .click() sobre un elemento oculto también dispara su onclick.
+  const pool = visible.length > 0 ? visible : controls.filter((control) => !control.hasAttribute('disabled'));
+  if (visible.length === 0 && pool.length > 0) {
+    console.warn(`⚠️ [BOTÓN] Ningún candidato visible; se intentará con ${pool.length} control(es) oculto(s).`);
   }
 
-  console.log('❌ [BOTÓN] No se encontró el botón con ID terminando en :btnSearch y value="Consultar"');
+  const candidates = pool
+    .map((control) => ({ control, score: searchScore(control) }))
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score
+      || distanceToIdentificationField(a.control) - distanceToIdentificationField(b.control));
 
-  // Búsqueda alternativa: cualquier botón con value="Consultar"
-  const consultarButtons = Array.from(document.querySelectorAll<HTMLElement>(
-    'input[type="submit"][value="Consultar"], input[type="button"][value="Consultar"], button'
-  )).filter(btn => {
-    const text = (btn.textContent || '').trim().toLowerCase();
-    return text === 'consultar';
+  console.log(`🔍 [BOTÓN] Controles: ${controls.length} | visibles: ${visible.length} | candidatos: ${candidates.length}`);
+
+  const best = candidates[0]?.control;
+  if (!best) {
+    // Depuración: lista TODOS los botones de formulario del documento (visibles y ocultos)
+    // para saber qué hay en pantalla y por qué no coincidi ninguno.
+    console.log('❌ [BOTÓN] Ningún candidato. Botones de formulario presentes:');
+    controls.filter((control) => control.matches('input, button')).forEach((control) => {
+      const input = control as HTMLInputElement;
+      console.log(
+        `   id="${control.id}" type="${input.type ?? ''}" value="${input.value ?? ''}" ` +
+        `texto="${control.textContent?.trim() ?? ''}" visible=${isUsable(control)} ` +
+        `disabled=${control.hasAttribute('disabled')}`,
+      );
+    });
+    return null;
+  }
+
+  const rect = best.getBoundingClientRect();
+  const input = best as HTMLInputElement;
+  console.log('✅ [BOTÓN] Botón Consultar encontrado:', {
+    id: best.id || '(sin id)',
+    tipo: input.type ?? best.tagName,
+    valor: input.value || best.textContent?.trim(),
+    visible: isUsable(best),
+    posicion: `(${rect.left.toFixed(0)}, ${rect.top.toFixed(0)})`,
+    tamano: `${rect.width.toFixed(0)}x${rect.height.toFixed(0)}`,
+    coincidencias: candidates.length,
   });
 
-  console.log(`🔍 [BOTÓN] Botones alternativos con texto "Consultar": ${consultarButtons.length}`);
-
-  const button = consultarButtons[0];
-  if (button) {
-    const rect = button.getBoundingClientRect();
-    console.log('✅ [BOTÓN] Botón alternativo encontrado:');
-    console.log(`   ID: ${button.id}`);
-    console.log(`   Texto: ${button.textContent?.trim()}`);
-    console.log(`   Ubicación: (${rect.left.toFixed(0)}, ${rect.top.toFixed(0)})`);
-
-    button.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return button;
-  }
-
-  console.log('❌ [BOTÓN] No se encontró ningún botón "Consultar"');
-  return null;
+  best.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  return best;
 }
 
 export async function clickInstructorSearchButton(): Promise<boolean> {
   const button = findExactSearchButton();
-  if (!button || button.getClientRects().length === 0) {
+  if (!button) {
     console.log('❌ clickInstructorSearchButton: No se encontró el botón Consultar o no es visible');
     return false;
   }
 
-  console.log('✅ clickInstructorSearchButton: Botón encontrado, preparando click...');
-  console.log(`   ID: ${button.id}`);
-  console.log(`   Name: ${button.getAttribute('name')}`);
-  console.log(`   Class: ${button.className}`);
-  console.log(`   Value: ${button.getAttribute('value')}`);
-
-  // Asegurar que el botón esté visible y scroll hacia él
+  // Scroll hacia el botón y espera a que termine para tener coordenadas reales.
   button.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-  // Esperar un momento para que el scroll se complete
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   const rect = button.getBoundingClientRect();
+  console.log(
+    `🎯 clickInstructorSearchButton: Click en id="${button.id || 'no-id'}" ` +
+    `centro=(${(rect.left + rect.width / 2).toFixed(0)}, ${(rect.top + rect.height / 2).toFixed(0)})`,
+  );
 
-  console.log('🎯 clickInstructorSearchButton: UBICACIÓN DEL BOTÓN ANTES DEL CLICK:');
-  console.log(`   Coordenadas: (${rect.left.toFixed(0)}, ${rect.top.toFixed(0)})`);
-  console.log(`   Tamaño: ${rect.width.toFixed(0)}x${rect.height.toFixed(0)}`);
-  console.log(`   Centro: (${(rect.left + rect.width / 2).toFixed(0)}, ${(rect.top + rect.height / 2).toFixed(0)})`);
-
-  // Crear marcador visual para debug
-  const root = document.body ?? document.documentElement;
-  const markerId = '__sofiaClickDebugMarker__';
-  let marker = document.getElementById(markerId) as HTMLDivElement | null;
-  if (!marker) {
-    marker = document.createElement('div');
-    marker.id = markerId;
-    root.appendChild(marker);
-  }
-
-  marker.style.position = 'fixed';
-  marker.style.left = `${rect.left}px`;
-  marker.style.top = `${rect.top}px`;
-  marker.style.width = `${rect.width}px`;
-  marker.style.height = `${rect.height}px`;
-  marker.style.pointerEvents = 'none';
-  marker.style.zIndex = '2147483647';
-  marker.style.border = '3px solid #ff3b30';
-  marker.style.borderRadius = '8px';
-  marker.style.background = 'rgba(255, 59, 48, 0.18)';
-  marker.style.boxShadow = '0 0 0 9999px rgba(0, 0, 0, 0.16)';
-  marker.style.display = 'flex';
-  marker.style.alignItems = 'flex-start';
-  marker.style.justifyContent = 'flex-start';
-  marker.style.fontSize = '10px';
-  marker.style.fontWeight = '700';
-  marker.style.fontFamily = 'Arial, sans-serif';
-  marker.style.color = '#fff';
-  marker.style.padding = '4px 6px';
-  marker.style.lineHeight = '1';
-  marker.textContent = `CLICK [${button.id || 'no-id'}]`;
-
-  console.log('🎯 clickInstructorSearchButton: Ejecutando click en el botón...');
-
-  // Ejecutar el click real
   try {
+    // Secuencia de ratón previa: algunos manejadores (jQuery/PrimeFaces) solo reaccionan
+    // si antes hubo mousedown/mouseup sobre el control.
+    const eventOptions: MouseEventInit = { bubbles: true, cancelable: true, view: window, button: 0, detail: 1 };
+    button.dispatchEvent(new MouseEvent('mousedown', eventOptions));
+    button.dispatchEvent(new MouseEvent('mouseup', eventOptions));
+
+    // UN solo click: antes se disparaba además un evento 'click' sintético y el
+    // formulario JSF se enviaba dos veces.
     button.click();
-    console.log('✅ clickInstructorSearchButton: Click ejecutado exitosamente');
-    console.log(`📍 UBICACIÓN DEL CLICK: (${(rect.left + rect.width / 2).toFixed(0)}, ${(rect.top + rect.height / 2).toFixed(0)})`);
-
-    // Disparar eventos adicionales para asegurar que el onclick se ejecute
-    button.dispatchEvent(new Event('click', { bubbles: true, cancelable: true }));
-    button.dispatchEvent(new Event('mousedown', { bubbles: true }));
-    button.dispatchEvent(new Event('mouseup', { bubbles: true }));
-
+    console.log('✅ clickInstructorSearchButton: Click ejecutado');
     return true;
   } catch (error) {
     console.log('❌ clickInstructorSearchButton: Error al ejecutar click:', error);
