@@ -58,6 +58,7 @@ export async function openIdentificationTypeSelect(): Promise<ClickPoint | null>
     const frameRect = currentWindow.frameElement.getBoundingClientRect();
     x += frameRect.left;
     y += frameRect.top;
+    if (!currentWindow.parent || currentWindow.parent === currentWindow) break;
     currentWindow = currentWindow.parent;
   }
   return { x, y };
@@ -95,6 +96,10 @@ export async function selectCitizenshipId(): Promise<boolean> {
     return false;
   }
   const option = select.options[optionIndex];
+  if (!option) {
+    console.log('❌ selectCitizenshipId: La opción requerida no existe.');
+    return false;
+  }
   console.log('✅ selectCitizenshipId: Seleccionando opción:', optionIndex, '"' + option.textContent?.trim() + '"');
   select.selectedIndex = optionIndex;
   select.value = option.value;
@@ -167,7 +172,7 @@ export async function fillInstructorIdentification(identification: string): Prom
   // 3. Por placeholder (solo si no contiene palabras de fecha)
   if (!input) {
     input = allInputs.find(inp => {
-      const placeholder = inp.placeholder?.toLowerCase() || '';
+      const placeholder = inp.placeholder.toLowerCase();
       const hasIdKeywords = placeholder.includes('identificación') ||
         placeholder.includes('documento') ||
         placeholder.includes('cédula') ||
@@ -199,9 +204,9 @@ export async function fillInstructorIdentification(identification: string): Prom
         const closestDist = closestRect ? Math.hypot(closestRect.left - selectRect.left, closestRect.top - selectRect.top) : Infinity;
         return currentDist < closestDist ? current : closest;
       }, null as HTMLInputElement | null);
-    } else if (visibleInputs.length >= 1) {
+    } else {
       // Fallback: primer input visible que no sea de fecha
-      input = visibleInputs[0];
+      input = visibleInputs[0] ?? null;
     }
   }
 
@@ -212,7 +217,7 @@ export async function fillInstructorIdentification(identification: string): Prom
 
   // Verificación final de seguridad
   if (isDateField(input)) {
-    console.log('❌ fillInstructorIdentification: El input encontrado parece ser un campo de fecha, abortando para evitar corruption de datos');
+    console.log('❌ fillInstructorIdentification: El input encontrado parece ser un campo de fecha, abortando para evitar corrupción de datos');
     return false;
   }
 
@@ -278,8 +283,8 @@ function findExactSearchButton(): HTMLElement | null {
 
   console.log(`🔍 [BOTÓN] Botones alternativos con texto "Consultar": ${consultarButtons.length}`);
 
-  if (consultarButtons.length > 0) {
-    const button = consultarButtons[0];
+  const button = consultarButtons[0];
+  if (button) {
     const rect = button.getBoundingClientRect();
     console.log('✅ [BOTÓN] Botón alternativo encontrado:');
     console.log(`   ID: ${button.id}`);

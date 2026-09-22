@@ -1,32 +1,48 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
+    /* Target y Entorno */
     "target": "ES2022",
     "lib": [
       "ES2022",
       "DOM",
       "DOM.Iterable"
     ],
+    "moduleDetection": "force",
+    /* Módulos y Resolución */
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "moduleDetection": "force",
-    "strict": true,
+    "resolveJsonModule": true,
+    /* Interoperabilidad y Emisión */
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "outDir": "./dist",
-    "rootDir": "./src",
-    "types": [
-      "node"
-    ]
+    "rootDir": "./",
+    /* Chequeo Estricto de Tipos (Modo Profesional) */
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    /* Calidad del Código y Buenas Prácticas */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    /* Optimización de Compilación */
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "src/main/**/*.ts",
-    "src/components/ipcHandlers.ts",
-    "src/components/windowManager.ts",
-    "src/components/sofiaPlus/**/*.ts",
-    "src/preload/**/*.ts"
+    "scripts/**/*.ts",
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
   ]
 }
