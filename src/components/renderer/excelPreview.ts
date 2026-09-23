@@ -8,7 +8,7 @@ const REQUIRED_COLUMN_NAMES = [REQUIRED_COLUMN_NAME, ALTERNATIVE_COLUMN_NAME];
 const REQUIRED_COLUMN_LABEL = `${REQUIRED_COLUMN_NAME} o ${ALTERNATIVE_COLUMN_NAME}`;
 const DROPZONE_HINT = `Arrastra y suelta tu archivo de nómina aquí (.xls, .xlsx). Obligatorio. Debe incluir ${REQUIRED_COLUMN_LABEL}.`;
 
-type FileElements = Pick<AppElements, 'dropzone' | 'fileInput' | 'dropzoneText' | 'excelPreview' | 'statusMessage' | 'inputIdentification'>;
+type FileElements = Pick<AppElements, 'dropzone' | 'fileInput' | 'dropzoneText' | 'excelPreview' | 'statusMessage'>;
 
 export function initFileHandling(elements: FileElements, state: FileUploadState): void {
   elements.dropzone.addEventListener('click', () => elements.fileInput.click());
@@ -28,6 +28,7 @@ export function initFileHandling(elements: FileElements, state: FileUploadState)
 }
 
 function validateAndSetFile(file: File, elements: FileElements, state: FileUploadState): void {
+  elements.dropzone.classList.remove('dropzone-valid', 'dropzone-error');
   const extension = file.name.split('.').pop()?.toLowerCase();
   if (extension !== 'xls' && extension !== 'xlsx') { alert('Solo se permiten archivos Excel en formato .xls o .xlsx'); return; }
   elements.dropzoneText.innerHTML = `Archivo seleccionado: <strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)`;
@@ -78,11 +79,11 @@ async function previewExcel(file: File, elements: FileElements, state: FileUploa
     });
     state.file = file;
     state.firstIdentification = firstIdentification;
-    if (firstIdentification && elements.inputIdentification) {
-      elements.inputIdentification.value = firstIdentification;
+    if (firstIdentification) {
       elements.statusMessage.textContent = `Cédula instructor extraída del Excel: ${firstIdentification}. ${REQUIRED_COLUMN_LABEL} presente.`;
     }
     elements.dropzone.classList.remove('dropzone-error');
+    elements.dropzone.classList.add('dropzone-valid');
     elements.excelPreview.replaceChildren(fragment);
     if (!firstIdentification) {
       elements.statusMessage.textContent = `Información de ${file.name} lista para revisar. ${REQUIRED_COLUMN_LABEL} presente, pero no se encontraron cédulas válidas.`;

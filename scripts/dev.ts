@@ -46,9 +46,9 @@ function startElectron(): void {
   }
 
   console.log('🚀 Iniciando Electron...');
-  // --enable-logging hace que los console.log del renderer (SofiaPlus) se impriman
-  // en esta terminal, así se puede depurar el flujo paso a paso.
-  electronProcess = spawn(String(electronPath), ['.', '--enable-logging'], {
+  // No activamos --enable-logging para evitar duplicar cada console.log del renderer
+  // como "INFO:CONSOLE". Los logs útiles de SofiaPlus se reenvían desde el proceso main.
+  electronProcess = spawn(String(electronPath), ['.'], {
     cwd: rootDir,
     stdio: 'inherit',
     env: { ...process.env, NODE_ENV: 'development' },

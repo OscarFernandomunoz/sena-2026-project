@@ -159,49 +159,66 @@
                 <input type="date" id="fechaFin" class="input-control" required />
               </div>
             </div>
-            <div class="form-group">
-              <label for="identificacion">Cédula instructor:</label>
-              <div class="input-wrapper">
-                <svg class="app-icon input-icon is-visible" viewBox="0 0 24 24" fill="none" aria-hidden="true"
-                  style="--icon-delay: 90ms;">
-                  <rect class="svg-icon-path" x="4" y="11" width="16" height="10" rx="2" stroke="currentColor"
-                    stroke-width="2" />
-                  <path class="svg-icon-path" d="M8 11V7.5C8 5.3 9.8 3.5 12 3.5s4 1.8 4 4V11" stroke="currentColor"
-                    stroke-width="2" stroke-linecap="round" />
-                  <circle class="svg-lock-core" cx="12" cy="16" r="1.2" fill="currentColor" opacity="0.85" />
-                </svg>
-                <input type="text" id="identificacion" class="input-control" placeholder="Extraída del Excel"
-                  required />
-              </div>
-            </div>
           </form>
           <div class="dropzone" id="dropzone">
             <input type="file" id="fileInput" accept=".xls, .xlsx" required />
             <div class="dropzone-content">
-              <div class="dropzone-icon">
-                <svg class="app-icon is-visible cloud-icon" viewBox="0 0 36 28" fill="none" aria-hidden="true"
-                  style="--icon-delay: 100ms;">
-                  <path class="svg-cloud" d="M10 24a6.5 6.5 0 0 1-1.2-12.9 8 8 0 0 1 15.4-2.7A5.8 5.8 0 0 1 27 24H10Z"
-                    stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-                </svg>
-                <svg class="app-icon is-visible upload-arrow-icon" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                  <path class="svg-arrow" d="M7 11V3m0 0L3.5 6.5M7 3l3.5 3.5" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
+              <div class="dropzone-icon" aria-hidden="true">
+                <span class="dropzone-icon-halo"></span>
+                <span class="dropzone-cloud-float">
+                  <svg class="app-icon is-visible cloud-icon" viewBox="0 0 48 38" fill="none"
+                    style="--icon-delay: 100ms;">
+                    <path class="dropzone-cloud-outline"
+                      d="M14.5 30.5h20.8a8.2 8.2 0 0 0 1.2-16.3A12.2 12.2 0 0 0 13.2 12a9.3 9.3 0 0 0 1.3 18.5Z"
+                      stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+                    <path class="dropzone-cloud-shine" d="M17 14.5c2.6-3.1 6.4-4.7 10.4-4.3"
+                      stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".34" />
+                  </svg>
+                </span>
+                <span class="dropzone-arrow-float">
+                  <svg class="app-icon is-visible upload-arrow-icon" viewBox="0 0 20 20" fill="none">
+                    <path d="M10 15V5m0 0L6 9m4-4 4 4" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </span>
+                <span class="dropzone-valid-badge">
+                  <svg viewBox="0 0 20 20" fill="none">
+                    <path d="m5.5 10.2 2.8 2.8 6.2-6.2" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </span>
               </div>
-              <span class="dropzone-text" id="dropzoneText">Arrastra y suelta tu archivo de nómina aquí (.xls,
-                .xlsx). Obligatorio. Debe incluir la Columna 3.</span>
+              <div class="dropzone-copy">
+                <span class="dropzone-eyebrow">Carga de nómina</span>
+                <span class="dropzone-text" id="dropzoneText">Arrastra y suelta tu archivo de nómina aquí (.xls,
+                  .xlsx). Obligatorio. Debe incluir la Columna 3.</span>
+              </div>
             </div>
-            <svg class="illustration" viewBox="0 0 100 80" fill="none">
-              <rect x="25" y="10" width="50" height="35" rx="3" fill="#64748B" stroke="#94A3B8" stroke-width="2" />
-              <path d="M 50 27 L 65 20 L 65 34 Z" fill="#38BDF8" />
-              <circle cx="40" cy="27" r="7" fill="#F59E0B" />
-              <circle cx="50" cy="50" r="6" fill="#FDBA74" />
-              <path d="M 42 68 C 42 58 58 58 58 68" fill="#1E293B" />
-              <path d="M 50 56 L 50 68" stroke="#E67E22" stroke-width="2" />
-              <rect x="35" y="65" width="25" height="12" rx="2" fill="#94A3B8" />
-              <circle cx="75" cy="62" r="10" fill="#475569" stroke="#94A3B8" stroke-dasharray="2 2" />
-            </svg>
+            <div class="dropzone-illustration-wrap" aria-hidden="true">
+              <svg class="illustration" viewBox="0 0 104 104" fill="none">
+                <ellipse class="illustration-shadow" cx="52" cy="91" rx="31" ry="6" />
+                <g class="illustration-back-card">
+                  <rect x="25" y="18" width="48" height="62" rx="11" />
+                  <path d="M37 31h19M37 40h25M37 49h17" />
+                </g>
+                <g class="illustration-main-card">
+                  <path d="M39 12h29l13 13v54a8 8 0 0 1-8 8H39a8 8 0 0 1-8-8V20a8 8 0 0 1 8-8Z" />
+                  <path d="M68 12v13h13" class="illustration-fold" />
+                  <path class="illustration-table-line" d="M42 42h27M42 52h27M42 62h19" />
+                  <path class="illustration-table-line" d="M48 38v31M60 38v31" />
+                </g>
+                <g class="illustration-check">
+                  <circle cx="72" cy="70" r="14" />
+                  <path d="m66.5 70 3.5 3.5 7-7" />
+                </g>
+                <g class="illustration-spark spark-one">
+                  <path d="M18 29v8M14 33h8" />
+                </g>
+                <g class="illustration-spark spark-two">
+                  <path d="M88 23v6M85 26h6" />
+                </g>
+              </svg>
+            </div>
           </div>
           <div class="excel-preview" id="excelPreview" aria-live="polite"></div>
           <button class="btn-submit" id="btnUpload">
@@ -234,43 +251,91 @@
       </section>
     </main>
   </div>
-  <footer class="status-bar">
-    <div class="status-item">
-      <svg class="app-icon status-icon is-visible" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <circle class="svg-icon-path" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
-        <path class="svg-clock-hands" d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-          stroke-linejoin="round" fill="none" />
-      </svg><span id="clock">12:00 PM</span>
+  <footer class="status-bar" aria-label="Información contextual">
+    <div class="status-items">
+      <div class="status-item status-clock-item">
+        <span class="status-icon-shell" aria-hidden="true">
+          <svg class="app-icon status-icon is-visible" viewBox="0 0 24 24" fill="none">
+            <circle class="status-clock-ring" cx="12" cy="12" r="8.5" />
+            <path class="status-clock-hand status-clock-hand-hour" d="M12 7.5V12" />
+            <path class="status-clock-hand status-clock-hand-minute" d="M12 12l3.2 2" />
+            <circle class="status-clock-center" cx="12" cy="12" r="1.25" />
+          </svg>
+        </span>
+        <span class="status-copy">
+          <span class="status-label">Hora local</span>
+          <span class="status-value" id="clock">12:00 PM</span>
+        </span>
+      </div>
+
+      <span class="status-divider" aria-hidden="true"></span>
+
+      <div class="status-item status-date-item">
+        <span class="status-icon-shell" aria-hidden="true">
+          <svg class="app-icon status-icon is-visible" viewBox="0 0 24 24" fill="none">
+            <rect class="status-calendar-page" x="3.5" y="5.5" width="17" height="15" rx="3" />
+            <path class="status-calendar-line" d="M3.5 9.5h17M8 3.5v4M16 3.5v4" />
+            <circle class="status-calendar-dot" cx="8" cy="14" r="1" />
+            <circle class="status-calendar-dot" cx="12" cy="14" r="1" />
+            <circle class="status-calendar-dot" cx="16" cy="14" r="1" />
+          </svg>
+        </span>
+        <span class="status-copy">
+          <span class="status-label">Fecha</span>
+          <span class="status-value" id="currentDate">Cargando fecha...</span>
+        </span>
+      </div>
+
+      <span class="status-divider" aria-hidden="true"></span>
+
+      <div class="status-item status-location-item">
+        <span class="status-icon-shell" aria-hidden="true">
+          <svg class="app-icon status-icon is-visible" viewBox="0 0 24 24" fill="none">
+            <circle class="status-location-pulse" cx="12" cy="10" r="7" />
+            <path class="status-location-pin" d="M12 21s6.5-5.8 6.5-11a6.5 6.5 0 1 0-13 0C5.5 15.2 12 21 12 21Z" />
+            <circle class="status-location-dot" cx="12" cy="10" r="2.3" />
+          </svg>
+        </span>
+        <span class="status-copy">
+          <span class="status-label">Ubicación</span>
+          <span class="status-value" id="currentCity">Detectando ciudad...</span>
+        </span>
+      </div>
+
+      <span class="status-divider" aria-hidden="true"></span>
+
+      <div class="status-item status-weather-item">
+        <span class="status-icon-shell" aria-hidden="true">
+          <svg class="app-icon status-icon weather-status-icon is-visible" viewBox="0 0 24 24" fill="none"
+            id="weatherIcon">
+            <g class="weather-sun-group">
+              <circle class="weather-sun-core" cx="8.5" cy="8.5" r="3.2" />
+              <path class="weather-sun-rays"
+                d="M8.5 2.5v2M2.5 8.5h2M4.2 4.2l1.4 1.4M11.4 4.2 10 5.6M12.5 8.5h2" />
+            </g>
+            <path class="weather-cloud-shape" d="M16.8 19a3.6 3.6 0 0 0 .3-7.2 4.6 4.6 0 0 0-8.9 1.1A3.1 3.1 0 0 0 8.6 19h8.2Z" />
+            <g class="weather-rain-group">
+              <path d="m9 21-.8 1.5M13 21l-.8 1.5M17 21l-.8 1.5" />
+            </g>
+            <g class="weather-snow-group">
+              <path d="M9 22h.01M13 22h.01M17 22h.01" />
+            </g>
+            <path class="weather-bolt" d="m13 18-2 3h2l-1 3 3.5-4h-2l1.5-2Z" />
+            <g class="weather-fog-group">
+              <path d="M8 21h9M10 23h7" />
+            </g>
+            <g class="weather-alert-group">
+              <path d="M16 19v2.5M16 23.5h.01" />
+            </g>
+          </svg>
+        </span>
+        <span class="status-copy">
+          <span class="status-label">Clima</span>
+          <span class="status-value" id="weather">Consultando clima...</span>
+        </span>
+      </div>
     </div>
-    <div class="status-divider"></div>
-    <div class="status-item">
-      <svg class="app-icon status-icon is-visible" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <rect class="svg-icon-path" x="3.5" y="5" width="17" height="16" rx="2.5" stroke="currentColor"
-          stroke-width="2" />
-        <path class="svg-icon-path" d="M3.5 9.5h17" stroke="currentColor" stroke-width="2" />
-        <path class="svg-icon-path" d="M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-      </svg><span id="currentDate">Cargando fecha...</span>
-    </div>
-    <div class="status-divider"></div>
-    <div class="status-item">
-      <svg class="app-icon status-icon is-visible" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path class="svg-icon-path" d="M12 21s6.5-5.8 6.5-11a6.5 6.5 0 1 0-13 0c0 5.2 6.5 11 6.5 11Z"
-          stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-        <circle class="svg-icon-path" cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="2" />
-      </svg><span id="currentCity">Detectando ciudad...</span>
-    </div>
-    <div class="status-divider"></div>
-    <div class="status-item weather-item">
-      <svg class="app-icon status-icon is-visible" viewBox="0 0 24 24" fill="none" aria-hidden="true" id="weatherIcon">
-        <circle class="svg-sun" cx="9" cy="13" r="4.2" stroke="currentColor" stroke-width="2" />
-        <path class="svg-sun-rays"
-          d="M9 3.5v2.3M3.5 13H5.8M5.8 7.2L4.2 5.6M12.2 7.2l1.6-1.6M13.8 13h2.3M12.2 18.8l1.6 1.6M4.2 20.4l1.6-1.6M9 20.5v-2.3"
-          stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-        <path class="svg-weather-cloud" d="M17 20.5a4 4 0 0 0 .3-8 5 5 0 0 0-9.7 1.2A3.5 3.5 0 0 0 8 20.5h9Z"
-          stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-      </svg><span id="weather">Consultando clima...</span>
-    </div>
-    <div id="statusMessage" class="status-message" aria-live="polite"></div>
+    <div id="statusMessage" class="status-message" role="status" aria-live="polite"></div>
   </footer>
   <script type="module" src="index.js"></script>
 </body>

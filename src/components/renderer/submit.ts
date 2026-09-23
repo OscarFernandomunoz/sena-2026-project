@@ -14,7 +14,7 @@ function setSubmitState(button: HTMLButtonElement, state: 'idle' | 'loading' | '
   }
 }
 
-export function initSubmit(elements: Pick<AppElements, 'uploadButton' | 'statusMessage' | 'dropzone' | 'inputUser' | 'inputPass' | 'inputStartDate' | 'inputEndDate' | 'inputIdentification'>, state: FileUploadState): void {
+export function initSubmit(elements: Pick<AppElements, 'uploadButton' | 'statusMessage' | 'dropzone' | 'inputUser' | 'inputPass' | 'inputStartDate' | 'inputEndDate'>, state: FileUploadState): void {
   elements.uploadButton.addEventListener('click', async () => {
     if (!elements.inputUser.value || !elements.inputPass.value) { alert('Ingrese las credenciales de acceso.'); return; }
     if (!state.file) {
@@ -23,10 +23,9 @@ export function initSubmit(elements: Pick<AppElements, 'uploadButton' | 'statusM
       alert('Sube el archivo Excel de nómina antes de iniciar sesión.');
       return;
     }
-    if (!elements.inputIdentification.value) {
-      elements.statusMessage.textContent = 'No se encontró cédula en el Excel. Ingresa manualmente la cédula del instructor.';
-      alert('No se encontró cédula válida en el archivo Excel. Por favor ingrésala manualmente o verifica el archivo.');
-      elements.inputIdentification.focus();
+    if (!state.firstIdentification) {
+      elements.statusMessage.textContent = 'No se encontró una cédula válida en la columna requerida del Excel.';
+      alert('No se encontró una cédula válida en el archivo Excel. Verifica la columna 3 o "# DE DOCUMENTO" e intenta nuevamente.');
       return;
     }
     state.isUploading = true;
@@ -39,7 +38,7 @@ export function initSubmit(elements: Pick<AppElements, 'uploadButton' | 'statusM
         password: elements.inputPass.value,
         startDate: elements.inputStartDate.value,
         endDate: elements.inputEndDate.value,
-        identification: elements.inputIdentification.value,
+        identification: state.firstIdentification,
       });
       setSubmitState(elements.uploadButton, 'success');
       elements.statusMessage.textContent = 'Sesión iniciada en SofiaPlus.';

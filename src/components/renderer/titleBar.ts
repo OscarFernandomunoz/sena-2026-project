@@ -4,12 +4,6 @@ export function initTitleBar(): void {
   const maximizeButton = document.getElementById('maximizeButton') as HTMLButtonElement;
   const closeButton = document.getElementById('closeButton') as HTMLButtonElement;
 
-  console.log('🔍 [TitleBar] Verificando botones en el DOM...', {
-    minimizeButton,
-    maximizeButton,
-    closeButton
-  });
-
   if (!minimizeButton || !maximizeButton || !closeButton) {
     console.error('❌ [TitleBar] Error: No se encontraron los botones en el DOM');
     return;
@@ -21,25 +15,20 @@ export function initTitleBar(): void {
     return;
   }
 
-  console.log('✅ [TitleBar] Botones y API de Electron detectados correctamente');
-
   // Minimizar ventana
   minimizeButton.addEventListener('click', (event) => {
-    console.log('🖱️ [CLICK] Botón MINIMIZAR presionado');
     event.stopPropagation();
     window.electronAPI.minimize();
   });
 
   // Maximizar/Restaurar ventana
   maximizeButton.addEventListener('click', (event) => {
-    console.log('🖱️ [CLICK] Botón MAXIMIZAR presionado');
     event.stopPropagation();
     window.electronAPI.toggleMaximize();
   });
 
   // Cerrar ventana
   closeButton.addEventListener('click', (event) => {
-    console.log('🖱️ [CLICK] Botón CERRAR presionado');
     event.stopPropagation();
     window.electronAPI.close();
   });
@@ -48,7 +37,6 @@ export function initTitleBar(): void {
   const updateMaximizeIcon = async (): Promise<void> => {
     try {
       const isMaximized = await window.electronAPI.isMaximized();
-      console.log('ℹ️ [TitleBar] Estado de maximización:', isMaximized);
 
       if (isMaximized) {
         maximizeButton.innerHTML = `
