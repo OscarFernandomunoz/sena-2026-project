@@ -18,15 +18,22 @@ function patchBlockUiScript(): string {
       const candidates = [window.jQuery, window.$].filter(Boolean);
       if (!candidates.length) return false;
       candidates.forEach((jq) => {
-        if (typeof jq.unblockUI !== 'function') jq.unblockUI = function unblockUI() {};
-        if (typeof jq.blockUI !== 'function') jq.blockUI = function blockUI() {};
+        try {
+          if (typeof jq.unblockUI !== 'function') jq.unblockUI = function unblockUI() {};
+          if (typeof jq.blockUI !== 'function') jq.blockUI = function blockUI() {};
+        } catch {
+          // Algunas versiones pueden definir propiedades de jQuery como no editables.
+        }
       });
       return candidates.every((jq) => typeof jq.unblockUI === 'function');
     };
     if (!window.__sofiaBlockUiPatch) {
       window.__sofiaBlockUiPatch = true;
       apply();
-      window.setInterval(apply, 250);
+      window.addEventListener('load', apply, { once: true });
+      // SofiaPlus puede recargar jQuery durante una petición JSF; el intervalo vuelve
+      // a instalar los métodos si esa recarga reemplaza window.$ o window.jQuery.
+      window.setInterval(apply, 50);
     }
     return apply();
   })()`;
@@ -43,11 +50,32 @@ export async function patchSofiaPageGuards(window: BrowserWindow): Promise<void>
 const childWindows = new WeakMap<BrowserWindow, Set<BrowserWindow>>();
 
 // Registra la ventana de SofiaPlus y las ventanas emergentes que abra (a cualquier nivel)
-// para que executeInFrames también pueda inspeccionarlas.
+// para que executeInFrames también pueda inspeccionarlas. Además reenvía al terminal de la
+// app los console.log que se imprimen DENTRO de la página de SofiaPlus: ahí vive toda la
+// depuración de los pasos (botones encontrados, listas de inputs, coordenadas) y sin este
+// reenvío esos mensajes nunca se ven en la consola de la aplicación.
+const consoleTracked = new WeakSet<WebContents>();
+
 export function trackSofiaWindow(window: BrowserWindow): void {
   if (!childWindows.has(window)) childWindows.set(window, new Set());
 
+  const forwardConsole = (contents: WebContents): void => {
+    if (consoleTracked.has(contents)) return;
+    consoleTracked.add(contents);
+    contents.on('console-message', (details) => {
+      const message = details.message?.trim();
+      if (message) console.log(`[SOFIA ${details.level}] ${message}`);
+    });
+  };
+
   const track = (contents: WebContents): void => {
+    forwardConsole(contents);
+    // Se aplica en cuanto el DOM está disponible, sin bloquear ni interferir con loadURL.
+    contents.on('dom-ready', () => {
+      void contents.executeJavaScript(patchBlockUiScript()).catch(() => {
+        // El frame todavía puede estar cambiando durante una navegación.
+      });
+    });
     contents.on('did-create-window', (child: BrowserWindow) => {
       const children = childWindows.get(window);
       children?.add(child);
@@ -316,13 +344,16 @@ export async function frameClickScript(
 }
 
 // Ejecuta un script que debe devolver un valor booleano para confirmar que una acción o elemento existe.
+// `attempts` controla cuántas veces se reintenta (cada intento espera ~300 ms entre frames);
+// los pasos que dependen de una respuesta AJAX del servidor pueden subirlo.
 export async function booleanScript(
   window: BrowserWindow,
   script: string,
   errorMessage: string,
+  attempts = 30,
 ): Promise<void> {
   await wait(ACTION_DELAY_MS);
   await patchSofiaPageGuards(window);
-  const result = await executeInFrames<boolean>(window, script, Boolean);
+  const result = await executeInFrames<boolean>(window, script, Boolean, attempts);
   if (!result) throw new Error(errorMessage);
 }

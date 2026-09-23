@@ -1,5 +1,5 @@
 import { BrowserWindow } from 'electron';
-import { booleanScript, clickScript, patchSofiaPageGuards, trackSofiaWindow, wait, executeInFrames } from './browser.js';
+import { booleanScript, clickScript, executeInFrames, patchSofiaPageGuards, trackSofiaWindow, wait } from './browser.js';
 import { fillSofiaInputs } from './login.js';
 import {
   findConsolidatedTimeOption,
@@ -8,7 +8,7 @@ import {
   openAspiranteOptions,
   selectCurriculumOption,
 } from './navigation.js';
-import { fillInstructorIdentification, fillReportDates, findInstructorPicker, clickInstructorSearchButton, instructorResultsLoaded, openIdentificationTypeSelect, selectCitizenshipId } from './report.js';
+import { clickInstructorResultLink, clickInstructorSearchInput, fillInstructorIdentification, fillReportDates, findInstructorPicker, openIdentificationTypeSelect, selectCitizenshipId } from './report.js';
 import type { SofiaCredentials } from './types.js';
 
 // Este archivo orquesta el flujo principal de automatización de SofiaPlus.
@@ -142,13 +142,28 @@ export async function openSofiaPlus(credentials: SofiaCredentials): Promise<void
   await booleanScript(window, `(${selectCitizenshipId.toString()})()`, 'No se encontró la opción Cédula de ciudadanía.');
   await booleanScript(window, `(${fillInstructorIdentification.toString()})(${JSON.stringify(credentials.identification)})`, 'No se encontró el campo de identificación del instructor.');
 
-  void showStepBanner(window, 10, '🔵 Pulsando botón Consultar del diálogo');
+  void showStepBanner(window, 10, '🖱️ Pulsando input Consultar del instructor');
+  // El input exacto es input#...:btnSearch.btn.btn-info.btn-block[type="submit"].
+  // booleanScript ejecuta la función en el frame que lo contiene; allí se hace un
+  // único click DOM, por lo que no se usan las coordenadas globales del iframe.
   await booleanScript(
     window,
-    `(${clickInstructorSearchButton.toString()})()`,
-    'No se encontró el botón Consultar del instructor.',
+    `(${clickInstructorSearchInput.toString()})()`,
+    'No se encontró o no se pudo pulsar el input Consultar del instructor.',
   );
 
-  void showStepBanner(window, 11, '✅ Esperando Lista de usuarios SENA');
-  await booleanScript(window, `(${instructorResultsLoaded.toString()})()`, 'SofiaPlus no mostró la lista de usuarios después de consultar.');
+  void showStepBanner(window, 11, '🖱️ Pulsando enlace del instructor');
+  // La respuesta JSF puede tardar unos segundos en insertar el <a>. Se reintenta durante
+  // aproximadamente 18 segundos y se hace un único click en el enlace exacto cuando aparece.
+  const resultLinkClicked = await executeInFrames<boolean>(
+    window,
+    `(${clickInstructorResultLink.toString()})()`,
+    Boolean,
+    60,
+  );
+  console.log(
+    resultLinkClicked
+      ? '[PASO 11] SÍ existía el enlace y el click fue enviado correctamente.'
+      : '[PASO 11] NO apareció el enlace "frmFuncionario:dtFuncionarios:0:cmdlnkShow" después de esperar.',
+  );
 }
