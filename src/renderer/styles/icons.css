@@ -1,0 +1,402 @@
+/* SVG icon rendering and icon animations. */
+
+html.icons-ready .app-icon {
+  opacity: 0;
+  transform: translateY(14px) rotate(-8deg) scale(0.86);
+}
+
+.app-icon.is-visible {
+  animation: icon-scroll-in 700ms var(--ease-out) var(--icon-delay, 0ms) both;
+  transition: color 220ms var(--ease-smooth), transform 220ms var(--ease-out), filter 220ms var(--ease-smooth);
+}
+
+.app-icon.is-visible:hover {
+  filter: drop-shadow(0 4px 5px color-mix(in srgb, var(--accent) 22%, transparent));
+  transform: translateY(-3px) rotate(3deg) scale(1.08);
+}
+
+.input-wrapper .app-icon.is-visible {
+  animation-name: input-icon-scroll-in;
+}
+
+.input-wrapper .app-icon.is-visible:hover {
+  transform: translateY(-50%) rotate(3deg) scale(1.08);
+}
+
+.panel-status .app-icon.is-visible {
+  color: var(--success);
+}
+
+.access-card {
+  padding: 22px;
+  margin-bottom: 22px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--form-surface);
+  box-shadow: 0 10px 26px color-mix(in srgb, #000 12%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 12%, transparent);
+  transition: background-color 260ms var(--ease-smooth), border-color 260ms var(--ease-smooth), box-shadow 260ms var(--ease-smooth);
+}
+
+.access-card:focus-within {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 10%, transparent), 0 10px 26px color-mix(in srgb, #000 12%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 12%, transparent);
+}
+
+.access-card-title {
+  margin-bottom: 16px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.form-group {
+  display: flex;
+  align-items: center;
+  max-width: 590px;
+  margin-bottom: 12px;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  width: 110px;
+  padding-right: 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: right;
+}
+
+.input-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+.input-wrapper i,
+.input-icon {
+  position: absolute;
+  top: 50%;
+  left: 13px;
+  transform: translateY(-50%);
+  color: var(--text);
+  opacity: 0.6;
+  font-size: 13px;
+}
+
+.input-icon {
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+  transition: color 220ms var(--ease-smooth), transform 220ms var(--ease-out), filter 220ms var(--ease-smooth);
+}
+
+.input-wrapper:focus-within .input-icon {
+  color: var(--text);
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--accent) 50%, transparent));
+}
+
+/* SVG icons: reveal con clip-path + dasharray generoso a prueba de repaints */
+.svg-icon-path,
+.svg-cloud,
+.svg-arrow,
+.svg-moon,
+.svg-sun,
+.svg-sun-rays,
+.svg-weather-cloud,
+.svg-clock-hands,
+.svg-check {
+  stroke-dashoffset: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform-origin: center;
+}
+
+/* Aplicar reveal clip-path al SVG padre para un efecto de entrada sin depender de dashoffset */
+.app-icon.is-visible {
+  clip-path: inset(0 0 0 0);
+  animation: svg-reveal 620ms var(--ease-out) var(--icon-delay, 0ms) both;
+}
+
+@keyframes svg-reveal {
+  0% {
+    clip-path: inset(100% 0 0 0);
+    opacity: 0;
+    transform: translateY(10px) scale(0.92);
+  }
+
+  65% {
+    opacity: 1;
+  }
+
+  100% {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Anclaje EXTRA nuclear: sin importar qué pase, los paths de SVG se mantienen visibles */
+.input-wrapper .svg-icon-path,
+.input-wrapper .svg-check,
+.input-wrapper .svg-cloud,
+.input-wrapper .svg-arrow,
+.input-wrapper .svg-lock-core,
+.input-wrapper .svg-cal-dot {
+  stroke-dashoffset: 0 !important;
+  stroke-dasharray: 1000 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: inline-block !important;
+}
+
+.input-wrapper .svg-lock-core,
+.input-wrapper .svg-cal-dot {
+  transform: scale(1);
+  visibility: visible;
+  display: inline-block !important;
+}
+
+/* Detalles animados de los icons: pulso, respiración, flotación */
+.app-icon.is-visible .svg-lock-core {
+  transform-origin: 12px 16px;
+  animation: svg-pop 520ms cubic-bezier(0.34, 1.56, 0.64, 1) 500ms both,
+    svg-breath 2.6s ease-in-out 1.4s infinite;
+}
+
+.app-icon.is-visible .svg-cal-dot {
+  transform-origin: 12px 15px;
+  animation: svg-pop 520ms cubic-bezier(0.34, 1.56, 0.64, 1) 620ms both,
+    svg-breath 2.4s ease-in-out 1.5s infinite;
+}
+
+.app-icon.is-visible .svg-sun {
+  transform-origin: 9px 13px;
+  animation: svg-pop 520ms cubic-bezier(0.34, 1.56, 0.64, 1) 500ms both;
+}
+
+.app-icon.is-visible .svg-sun-rays {
+  transform-origin: 9px 13px;
+  animation: svg-draw 700ms var(--ease-out) 300ms forwards,
+    svg-rotate 18s linear 1.4s infinite;
+}
+
+.app-icon.is-visible .svg-weather-cloud {
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  animation: svg-draw 700ms var(--ease-out) 500ms forwards,
+    svg-cloud-drift 5s ease-in-out 1.4s infinite;
+}
+
+.app-icon.is-visible .svg-moon {
+  stroke-dasharray: 180;
+  stroke-dashoffset: 180;
+  animation: svg-draw 620ms var(--ease-out) forwards;
+}
+
+.theme-toggle.is-switching .svg-moon,
+.theme-toggle.is-switching .theme-icon {
+  animation: svg-draw 620ms var(--ease-out) both, svg-spin 620ms var(--ease-out) both;
+}
+
+@keyframes svg-pop {
+  0% {
+    transform: scale(0) rotate(-30deg);
+    opacity: 0;
+  }
+
+  70% {
+    transform: scale(1.25) rotate(8deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
+}
+
+@keyframes svg-breath {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.18);
+  }
+}
+
+@keyframes svg-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes svg-spin {
+  from {
+    transform: rotate(-40deg) scale(0.7);
+  }
+
+  to {
+    transform: rotate(0) scale(1);
+  }
+}
+
+@keyframes dropzone-cloud-float {
+
+  0%,
+  100% {
+    transform: translate3d(0, 1px, 0) rotate(-1deg);
+  }
+
+  50% {
+    transform: translate3d(0, -3px, 0) rotate(1deg);
+  }
+}
+
+@keyframes dropzone-arrow-float {
+
+  0%,
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(-50%, -3px, 0);
+  }
+}
+
+@keyframes dropzone-arrow-launch {
+
+  0% {
+    transform: translate3d(-50%, 2px, 0) scale(0.9);
+    opacity: 0.55;
+  }
+
+  55% {
+    transform: translate3d(-50%, -8px, 0) scale(1.15);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate3d(-50%, -2px, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes dropzone-halo-pulse {
+
+  0%,
+  100% {
+    opacity: 0.42;
+    transform: scale(0.94);
+  }
+
+  50% {
+    opacity: 0.85;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes dropzone-sheet-float {
+
+  0%,
+  100% {
+    transform: translate3d(0, 1px, 0) rotate(-1deg);
+  }
+
+  50% {
+    transform: translate3d(0, -3px, 0) rotate(1.5deg);
+  }
+}
+
+@keyframes dropzone-check-pop {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes dropzone-error-shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  30% {
+    transform: translateX(-4px);
+  }
+
+  65% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes dropzone-spark {
+
+  0%,
+  100% {
+    opacity: 0.28;
+    transform: scale(0.72) rotate(0deg);
+  }
+
+  50% {
+    opacity: 0.9;
+    transform: scale(1.12) rotate(35deg);
+  }
+}
+
+@keyframes btn-icon-motion {
+
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  50% {
+    transform: translate3d(0, -1.5px, 0) rotate(-5deg);
+  }
+}
+
+
+/* Status bar SVGs */
+.status-icon {
+  width: 12px;
+  height: 12px;
+  color: var(--accent);
+}
+
+.status-icon .svg-clock-hands {
+  transform-origin: 12px 12px;
+  animation: svg-rotate 22s linear infinite;
+  stroke-dasharray: 30;
+  stroke-dashoffset: 30;
+}
+
+.theme-toggle .theme-icon {
+  width: 14px;
+  height: 14px;
+  color: currentColor;
+}
+
+.theme-toggle.is-switching .theme-icon {
+  animation: svg-spin 520ms var(--ease-out) both;
+}
+
+.panel-status .app-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.panel-status .svg-check {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: svg-draw 600ms var(--ease-out) 400ms forwards;
+}

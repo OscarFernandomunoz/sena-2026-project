@@ -1,5 +1,5 @@
 import * as esbuild from 'esbuild';
-import { rmSync, copyFileSync, mkdirSync, existsSync } from 'node:fs';
+import { rmSync, copyFileSync, cpSync, mkdirSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawn, ChildProcess } from 'node:child_process';
 import electronPath from 'electron';
@@ -27,9 +27,10 @@ function copyStaticAssets(): void {
     copyFileSync(htmlSrc, resolve(distRendererDir, 'index.html'));
   }
 
-  const cssSrc = resolve(rootDir, 'src/renderer/style.css');
-  if (existsSync(cssSrc)) {
-    copyFileSync(cssSrc, resolve(distRendererDir, 'style.css'));
+  const stylesSrc = resolve(rootDir, 'src/renderer/styles');
+  const stylesDist = resolve(distRendererDir, 'styles');
+  if (existsSync(stylesSrc)) {
+    cpSync(stylesSrc, stylesDist, { recursive: true });
   }
 
   const publicImagesDir = resolve(rootDir, 'public/images');

@@ -1,0 +1,88 @@
+/* Access form, inputs and form controls. */
+
+.access-card {
+  padding: 22px;
+  margin-bottom: 22px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--form-surface);
+  box-shadow: 0 10px 26px color-mix(in srgb, #000 12%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 12%, transparent);
+  transition: background-color 260ms var(--ease-smooth), border-color 260ms var(--ease-smooth), box-shadow 260ms var(--ease-smooth);
+}
+
+.access-card:focus-within {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 10%, transparent), 0 10px 26px color-mix(in srgb, #000 12%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 12%, transparent);
+}
+
+.access-card-title {
+  margin-bottom: 16px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.form-group {
+  display: flex;
+  align-items: center;
+  max-width: 590px;
+  margin-bottom: 12px;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  width: 110px;
+  padding-right: 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: right;
+}
+
+.input-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+.input-wrapper i,
+.input-icon {
+  position: absolute;
+  top: 50%;
+  left: 13px;
+  transform: translateY(-50%);
+  color: var(--text);
+  opacity: 0.6;
+  font-size: 13px;
+}
+
+.input-icon {
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+  transition: color 220ms var(--ease-smooth), transform 220ms var(--ease-out), filter 220ms var(--ease-smooth);
+}
+
+.input-wrapper:focus-within .input-icon {
+  color: var(--text);
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--accent) 50%, transparent));
+}
+
+.input-control {
+  width: 100%;
+  padding: 10px 12px 10px 36px;
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  background: var(--input-surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 220ms var(--ease-smooth), background-color 220ms var(--ease-smooth), box-shadow 220ms var(--ease-smooth), transform 220ms var(--ease-out);
+}
+
+.input-control:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+  transform: translateY(-1px);
+}

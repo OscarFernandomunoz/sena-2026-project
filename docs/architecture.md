@@ -24,7 +24,22 @@ src/
 ├── renderer/
 │   ├── index.html                        # Estructura HTML
 │   ├── index.ts                          # Inicialización del renderer
-│   ├── style.css                         # Estilos visuales
+│   ├── styles/                           # Estilos CSS modulares
+│   │   ├── index.css                     # Entrada e imports de estilos
+│   │   ├── tokens.css                    # Variables y temas
+│   │   ├── base.css                      # Reset y base global
+│   │   ├── title-bar.css                 # Barra y controles de ventana
+│   │   ├── layout.css                    # Layout y paneles
+│   │   ├── theme.css                     # Selector de tema
+│   │   ├── icons.css                     # SVG y animaciones de iconos
+│   │   ├── forms.css                     # Formularios e inputs
+│   │   ├── dropzone.css                  # Zona de carga y estados
+│   │   ├── illustration.css              # Ilustración del dropzone
+│   │   ├── excel-preview.css             # Vista previa y filtros de Excel
+│   │   ├── submit.css                    # Botón principal y estados
+│   │   ├── status-bar.css                # Barra inferior, reloj y clima
+│   │   ├── animations.css                # Keyframes compartidas
+│   │   └── responsive.css                # Media queries y reduced motion
 │   ├── types.ts                          # Tipos de estado y elementos
 │   ├── components/
 │   │   ├── excel-preview.ts              # Carga y vista previa de Excel

@@ -1,0 +1,451 @@
+/* Bottom status bar, clock, location and weather. */
+
+@keyframes status-clock-ring {
+
+  0%,
+  100% {
+    stroke-dashoffset: 8;
+    opacity: 0.82;
+  }
+
+  50% {
+    stroke-dashoffset: 2;
+    opacity: 1;
+  }
+}
+
+@keyframes status-icon-pulse {
+
+  0%,
+  100% {
+    opacity: 0.58;
+    transform: scale(0.82);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}
+
+@keyframes status-location-bob {
+
+  0%,
+  100% {
+    transform: translate3d(0, 1px, 0);
+  }
+
+  50% {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+@keyframes status-location-pulse {
+
+  0% {
+    opacity: 0.42;
+    transform: scale(0.4);
+  }
+
+  75%,
+  100% {
+    opacity: 0;
+    transform: scale(1.25);
+  }
+}
+
+@keyframes status-sun-breathe {
+
+  0%,
+  100% {
+    transform: scale(0.92);
+    opacity: 0.82;
+  }
+
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes status-dash-flow {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+
+@keyframes status-cloud-float {
+
+  0%,
+  100% {
+    transform: translate3d(0, 1px, 0);
+  }
+
+  50% {
+    transform: translate3d(1px, -2px, 0);
+  }
+}
+
+@keyframes status-rain-fall {
+
+  0% {
+    opacity: 0.2;
+    transform: translateY(-2px);
+  }
+
+  45% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.2;
+    transform: translateY(3px);
+  }
+}
+
+@keyframes status-snow-pulse {
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(-1px);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(2px);
+  }
+}
+
+@keyframes status-lightning {
+
+  0%,
+  62%,
+  100% {
+    opacity: 0.28;
+    transform: scale(0.94);
+  }
+
+  68%,
+  82% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes status-fog-flow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+@keyframes status-icon-bob {
+
+  0%,
+  100% {
+    transform: translate3d(0, 1px, 0) rotate(-1deg);
+  }
+
+  50% {
+    transform: translate3d(0, -2px, 0) rotate(1deg);
+  }
+}
+
+/* Barra de estado: módulos compactos, iconos animados y mismos colores del tema. */
+.status-bar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 44px;
+  padding: 4px 14px;
+  overflow: hidden;
+  border-top: 1px solid var(--border);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, transparent), color-mix(in srgb, var(--surface-muted) 82%, transparent));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface) 72%, transparent), 0 -5px 18px rgba(0, 0, 0, 0.04);
+  color: var(--text-muted);
+  font-size: 11px;
+  user-select: none;
+  backdrop-filter: blur(14px);
+  transition: background 280ms var(--ease-smooth), border-color 280ms var(--ease-smooth), color 280ms var(--ease-smooth), box-shadow 280ms var(--ease-smooth);
+}
+
+.status-items {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.status-item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 2px 4px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  white-space: nowrap;
+}
+
+.status-icon-shell {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--accent);
+  box-shadow: none;
+}
+
+.status-copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.status-label {
+  color: var(--text-muted);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.status-value {
+  max-width: 250px;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  color: currentColor;
+  overflow: visible;
+}
+
+.status-clock-ring,
+.status-clock-hand,
+.status-calendar-page,
+.status-calendar-line,
+.status-location-pin,
+.status-weather-icon,
+.weather-status-icon > *,
+.weather-status-icon > g > * {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.status-clock-ring {
+  stroke-dasharray: 54;
+  stroke-dashoffset: 8;
+  animation: status-clock-ring 14s var(--ease-smooth) infinite;
+}
+
+.status-clock-hand {
+  transform-origin: 12px 12px;
+}
+
+.status-clock-hand-hour {
+  animation: svg-rotate 43200s linear infinite;
+}
+
+.status-clock-hand-minute {
+  animation: svg-rotate 3600s linear infinite;
+}
+
+.status-clock-center {
+  fill: currentColor;
+  stroke: none;
+  transform-origin: 12px 12px;
+  animation: status-icon-pulse 2s var(--ease-smooth) infinite;
+}
+
+.status-calendar-page,
+.status-calendar-line {
+  transform-origin: center;
+}
+
+/* Cada icono completo se mantiene animado de forma continua e independiente. */
+.status-clock-item .status-icon {
+  animation: status-icon-bob 3.2s var(--ease-smooth) infinite;
+}
+
+.status-date-item .status-icon {
+  animation: status-icon-bob 4.2s var(--ease-smooth) infinite;
+}
+
+.status-location-item .status-icon {
+  animation: status-icon-bob 3.6s var(--ease-smooth) infinite;
+}
+
+.status-weather-item .status-icon {
+  animation: status-icon-bob 4.4s var(--ease-smooth) infinite;
+}
+
+.status-calendar-dot {
+  fill: currentColor;
+  stroke: none;
+  transform-origin: center;
+  animation: status-icon-pulse 2.6s var(--ease-smooth) infinite;
+}
+
+.status-calendar-dot:nth-child(4) {
+  animation-delay: -0.8s;
+}
+
+.status-calendar-dot:nth-child(5) {
+  animation-delay: -1.6s;
+}
+
+.status-location-pin {
+  transform-origin: 12px 20px;
+  animation: status-location-bob 3.2s var(--ease-smooth) infinite;
+}
+
+.status-location-dot {
+  fill: currentColor;
+  stroke: none;
+  transform-origin: 12px 10px;
+  animation: status-icon-pulse 2.2s var(--ease-smooth) infinite;
+}
+
+.status-location-pulse {
+  opacity: 0;
+  transform-origin: 12px 10px;
+  animation: status-location-pulse 2.8s var(--ease-out) infinite;
+}
+
+.weather-sun-group {
+  transform-origin: 8.5px 8.5px;
+  animation: svg-rotate 16s linear infinite;
+  transition: opacity 320ms var(--ease-smooth);
+}
+
+.weather-sun-core {
+  transform-origin: 8.5px 8.5px;
+  animation: status-sun-breathe 3.2s var(--ease-smooth) infinite;
+}
+
+.weather-sun-rays {
+  stroke-dasharray: 4 3;
+  animation: status-dash-flow 8s linear infinite;
+}
+
+.weather-cloud-shape {
+  transform-origin: center;
+  animation: status-cloud-float 3.6s var(--ease-smooth) infinite;
+}
+
+.weather-rain-group,
+.weather-snow-group,
+.weather-bolt,
+.weather-fog-group,
+.weather-alert-group {
+  opacity: 0;
+  transition: opacity 280ms var(--ease-smooth);
+}
+
+.weather-rain-group path {
+  stroke-dasharray: 3 3;
+  animation: status-rain-fall 1.1s linear infinite;
+}
+
+.weather-snow-group path {
+  animation: status-snow-pulse 1.8s var(--ease-smooth) infinite;
+}
+
+.weather-bolt {
+  fill: color-mix(in srgb, currentColor 16%, transparent);
+  animation: status-lightning 2.2s var(--ease-smooth) infinite;
+}
+
+.weather-fog-group path {
+  stroke-dasharray: 8 4;
+  animation: status-fog-flow 2.2s linear infinite;
+}
+
+.weather-alert-group path {
+  animation: status-icon-pulse 1.5s var(--ease-smooth) infinite;
+}
+
+.weather-status-icon[data-weather*="rain"] .weather-sun-group,
+.weather-status-icon[data-weather*="snowflake"] .weather-sun-group,
+.weather-status-icon[data-weather*="cloud-bolt"] .weather-sun-group,
+.weather-status-icon[data-weather*="cloud-exclamation"] .weather-sun-group,
+.weather-status-icon[data-weather*="smog"] .weather-sun-group {
+  opacity: 0.22;
+}
+
+.weather-status-icon[data-weather*="rain"] .weather-rain-group,
+.weather-status-icon[data-weather*="snowflake"] .weather-snow-group,
+.weather-status-icon[data-weather*="cloud-bolt"] .weather-bolt,
+.weather-status-icon[data-weather*="smog"] .weather-fog-group,
+.weather-status-icon[data-weather*="cloud-exclamation"] .weather-alert-group {
+  opacity: 1;
+}
+
+.status-message {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  max-width: 30%;
+  margin-left: auto;
+  padding: 5px 9px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface-muted) 72%, transparent);
+  color: var(--text-muted);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-message:not(:empty)::before {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 7px;
+  border-radius: 999px;
+  background: var(--accent);
+  content: "";
+  vertical-align: 1px;
+}
+
+.status-message:empty {
+  display: none;
+}
+
+.status-divider {
+  width: 1px;
+  height: 18px;
+  background: linear-gradient(transparent, var(--border-strong), transparent);
+}
