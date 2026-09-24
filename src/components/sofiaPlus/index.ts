@@ -1,4 +1,10 @@
 import { BrowserWindow } from 'electron';
+import {
+  getAppWindowOptions,
+  getCurrentTitleBarTheme,
+  registerRemoteWindow,
+  TITLE_BAR_HEIGHT,
+} from '../windowAppearance.js';
 import { booleanScript, clickScript, executeInFrames, patchSofiaPageGuards, trackSofiaWindow, wait } from './browser.js';
 import { fillSofiaInputs } from './login.js';
 import {
@@ -34,7 +40,7 @@ function showStepBanner(window: BrowserWindow, stepNumber: number, stepTitle: st
       const title = ${JSON.stringify(stepTitle)};
       const pct = Math.round((step / total) * 100);
       banner.style.position = 'fixed';
-      banner.style.top = '12px';
+      banner.style.top = '${TITLE_BAR_HEIGHT + 12}px';
       banner.style.right = '12px';
       banner.style.zIndex = '2147483647';
       banner.style.background = '#11161c';
@@ -75,9 +81,10 @@ async function loadWindow(): Promise<BrowserWindow> {
   const window = new BrowserWindow({
     width: 1200,
     height: 800,
-    autoHideMenuBar: true,
+    ...getAppWindowOptions(getCurrentTitleBarTheme()),
     webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
+  registerRemoteWindow(window);
   sofiaWindow = window;
   window.on('closed', () => { sofiaWindow = null; });
   // Permite que executeInFrames alcance también las ventanas emergentes del sitio

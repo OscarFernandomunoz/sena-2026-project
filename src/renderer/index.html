@@ -5,33 +5,56 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ahorro Instructor Automatizado (AIA)</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
   <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com data:; img-src 'self' data:; connect-src 'self' https://nominatim.openstreetmap.org https://api.open-meteo.com; object-src 'none'; base-uri 'self';" />
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; connect-src 'self' https://nominatim.openstreetmap.org https://api.open-meteo.com; object-src 'none'; base-uri 'self';" />
 </head>
 
 <body>
   <link rel="icon" type="image/svg+xml" href="images/sofia-plus.svg" />
 
-  <!-- Custom Title Bar -->
+  <!-- Barra inspirada en VS Code, con controles adaptados al sistema operativo -->
   <div class="title-bar">
+    <img class="title-bar-app-icon" src="images/sofia-plus.png" alt="" aria-hidden="true" draggable="false">
+
+    <div class="title-bar-controls mac-window-controls" aria-label="Controles de ventana">
+      <button class="mac-window-button mac-close-button" id="macCloseButton" type="button"
+        aria-label="Cerrar">
+        <svg viewBox="0 0 8 8" aria-hidden="true">
+          <path d="M1.25 1.25l5.5 5.5m0-5.5l-5.5 5.5" />
+        </svg>
+      </button>
+      <button class="mac-window-button mac-minimize-button" id="macMinimizeButton" type="button"
+        aria-label="Minimizar">
+        <svg viewBox="0 0 8 8" aria-hidden="true">
+          <path d="M1.5 4h5" />
+        </svg>
+      </button>
+      <button class="mac-window-button mac-fullscreen-button" id="macFullscreenButton" type="button"
+        aria-label="Pantalla completa">
+        <svg viewBox="0 0 8 8" aria-hidden="true">
+          <path d="M3 1.25H1.25V3m3.75-1.75H6.75V3M5 6.75h1.75V5M3 6.75H1.25V5" />
+        </svg>
+      </button>
+    </div>
+
     <div class="title-bar-drag-region">
       <span class="title-bar-title">AIA - Gestión de Nómina</span>
     </div>
-    <div class="title-bar-controls">
-      <button class="title-bar-button minimize-button" id="minimizeButton" aria-label="Minimizar">
-        <svg viewBox="0 0 10 1" width="10" height="1">
+
+    <div class="title-bar-controls windows-window-controls">
+      <button class="title-bar-button minimize-button" id="minimizeButton" type="button" aria-label="Minimizar">
+        <svg viewBox="0 0 10 1" width="10" height="1" aria-hidden="true">
           <rect width="10" height="1" fill="currentColor" />
         </svg>
       </button>
-      <button class="title-bar-button maximize-button" id="maximizeButton" aria-label="Maximizar">
-        <svg viewBox="0 0 10 10" width="10" height="10">
+      <button class="title-bar-button maximize-button" id="maximizeButton" type="button" aria-label="Maximizar">
+        <svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true">
           <rect width="10" height="10" fill="none" stroke="currentColor" stroke-width="1" />
         </svg>
       </button>
-      <button class="title-bar-button close-button" id="closeButton" aria-label="Cerrar">
-        <svg viewBox="0 0 10 10" width="10" height="10">
+      <button class="title-bar-button close-button" id="closeButton" type="button" aria-label="Cerrar">
+        <svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true">
           <path d="M0 0L10 10M10 0L0 10" stroke="currentColor" stroke-width="1" />
         </svg>
       </button>
@@ -46,7 +69,8 @@
           <h1 id="viewTitle">Subir archivo</h1>
         </div>
         <div class="theme-selector">
-          <button class="theme-toggle" id="themeToggle" type="button" aria-label="Seleccionar tema">
+          <button class="theme-toggle" id="themeToggle" type="button" aria-label="Seleccionar tema"
+            aria-haspopup="menu" aria-expanded="false">
             <svg class="app-icon theme-icon is-visible" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path class="svg-moon" d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a6.5 6.5 0 0 0 11 11Z" stroke="currentColor"
                 stroke-width="2" stroke-linejoin="round" />

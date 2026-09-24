@@ -16,8 +16,11 @@ export interface IElectronAPI {
   setTheme: (theme: 'light' | 'dark') => void;
 
   // Control de la ventana (TitleBar)
+  titleBarPlatform: 'darwin' | 'win32' | 'linux' | 'custom';
+  setTitleBarTheme: (theme: 'light' | 'dark') => void;
   minimize: () => void;
   toggleMaximize: () => void;
+  toggleFullScreen: () => void;
   close: () => void;
   isMaximized: () => Promise<boolean>;
   onMaximizeChange: (callback: (isMaximized: boolean) => void) => () => void;

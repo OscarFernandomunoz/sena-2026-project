@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { openSofiaPlus, type SofiaCredentials } from './sofiaPlus/index.js';
+import { applyTitleBarTheme } from './windowAppearance.js';
 
 // Registra los canales IPC que usa la app para comunicarse entre el renderer y el proceso principal.
 export function registerIpcHandlers(): void {
@@ -12,32 +13,43 @@ export function registerIpcHandlers(): void {
       await openSofiaPlus(credentials);
     });
 
-    // Controla la ventana desde la titlebar custom (frame: false)
-    ipcMain.on('window:minimize', () => {
-      const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
-      win?.minimize();
-    });
+    // Sincroniza el tema y la barra nativa de todas las ventanas de la app.
+    ipcMain.on('window:set-title-bar-theme', (event, theme: unknown) => {
+      if (theme !== 'light' && theme !== 'dark') return;
+      if (!BrowserWindow.fromWebContents(event.sender)) return;
 
-    ipcMain.on('window:toggle-maximize', () => {
-      const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
-      if (!win) return;
-      if (win.isMaximized()) {
-        win.unmaximize();
-        win.webContents.send('window:unmaximized');
-      } else {
-        win.maximize();
-        win.webContents.send('window:maximized');
+      for (const window of BrowserWindow.getAllWindows()) {
+        applyTitleBarTheme(window, theme);
       }
     });
 
-    ipcMain.on('window:close', () => {
-      const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
-      win?.close();
+    // Los controles de fallback siempre se dirigen a la ventana que envió el evento.
+    ipcMain.on('window:minimize', (event) => {
+      BrowserWindow.fromWebContents(event.sender)?.minimize();
     });
 
-    ipcMain.handle('window:is-maximized', () => {
-      const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
-      return win?.isMaximized() ?? false;
+    ipcMain.on('window:toggle-maximize', (event) => {
+      const win = BrowserWindow.fromWebContents(event.sender);
+      if (!win) return;
+      if (win.isMaximized()) {
+        win.unmaximize();
+      } else {
+        win.maximize();
+      }
+    });
+
+    ipcMain.on('window:toggle-full-screen', (event) => {
+      const win = BrowserWindow.fromWebContents(event.sender);
+      if (!win) return;
+      win.setFullScreen(!win.isFullScreen());
+    });
+
+    ipcMain.on('window:close', (event) => {
+      BrowserWindow.fromWebContents(event.sender)?.close();
+    });
+
+    ipcMain.handle('window:is-maximized', (event) => {
+      return BrowserWindow.fromWebContents(event.sender)?.isMaximized() ?? false;
     });
   } catch (error) {
     console.error('Error al registrar handlers IPC:', error);
