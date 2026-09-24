@@ -59,6 +59,11 @@
 }
 
 @media (max-width: 640px) {
+  :root {
+    --section-gap: 28px;
+    --excel-preview-gap: 36px;
+  }
+
   .content-header {
     align-items: flex-start;
     padding: 50px 20px 18px;

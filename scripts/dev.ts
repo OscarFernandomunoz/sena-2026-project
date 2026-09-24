@@ -54,7 +54,7 @@ function startElectron(): void {
     electronProcess = null;
   }
 
-  console.log('🚀 Iniciando Electron...');
+  console.log('[AIA][Dev] Iniciando el proceso de Electron.');
   // No activamos --enable-logging para evitar duplicar cada console.log del renderer
   // como "INFO:CONSOLE". Los logs útiles de SofiaPlus se reenvían desde el proceso main.
   electronProcess = spawn(String(electronPath), ['.'], {
@@ -67,7 +67,7 @@ function startElectron(): void {
   electronProcess.on('close', (code) => {
     // Evitamos cerrar el proceso dev si Electron fue matado deliberadamente para reiniciar
     if (code !== null && code !== 0) {
-      console.log(`👋 Electron cerró con código: ${code}`);
+      console.warn(`[AIA][Dev] El proceso de Electron se cerró inesperadamente (código ${code}).`);
     }
   });
 }
@@ -79,11 +79,11 @@ const reloadElectronPlugin = (name: string): esbuild.Plugin => ({
     let isFirstBuild = true;
     build.onEnd((result) => {
       if (result.errors.length > 0) {
-        console.error(`❌ Error recompilando ${name}:`, result.errors);
+        console.error(`[AIA][Dev] Error al recompilar ${name}.`, result.errors);
         return;
       }
 
-      console.log(`⚡ Recompilación exitosa de ${name}`);
+      console.log(`[AIA][Dev] ${name} recompilado correctamente.`);
 
       if (isFirstBuild) {
         isFirstBuild = false;
@@ -97,7 +97,7 @@ const reloadElectronPlugin = (name: string): esbuild.Plugin => ({
       // No reiniciar durante la compilación inicial; Electron se inicia al final.
       if (!electronStarted) return;
 
-      console.log(`🔄 Cambio detectado en ${name} (.ts). Reiniciando Electron...`);
+      console.log(`[AIA][Dev] Se detectaron cambios en ${name}; reiniciando Electron.`);
       startElectron();
     });
   },
@@ -105,10 +105,10 @@ const reloadElectronPlugin = (name: string): esbuild.Plugin => ({
 
 // 4. Función principal de compilación y observación
 async function dev(): Promise<void> {
-  console.log('🧹 Limpiando carpeta dist/...');
+  console.log('[AIA][Dev] Limpiando el directorio dist...');
   rmSync(resolve(rootDir, 'dist'), { recursive: true, force: true });
 
-  console.log('📁 Copiando archivos estáticos...');
+  console.log('[AIA][Dev] Copiando archivos estáticos...');
   copyStaticAssets();
 
   const sharedConfig: esbuild.BuildOptions = {
@@ -155,7 +155,7 @@ async function dev(): Promise<void> {
     plugins: [reloadElectronPlugin('Renderer')],
   });
 
-  console.log('👀 Observando cambios en archivos TypeScript (src/**/*.ts)...');
+  console.log('[AIA][Dev] Observando cambios en los archivos TypeScript (src/**/*.ts)...');
   await Promise.all([
     mainCtx.watch(),
     preloadCtx.watch(),
@@ -170,6 +170,6 @@ async function dev(): Promise<void> {
 }
 
 dev().catch((err) => {
-  console.error('❌ Error al iniciar el entorno de desarrollo:', err);
+  console.error('[AIA][Dev] No se pudo iniciar el entorno de desarrollo.', err);
   process.exit(1);
 });

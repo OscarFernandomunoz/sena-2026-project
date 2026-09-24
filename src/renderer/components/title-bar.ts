@@ -3,7 +3,7 @@ import { subscribeToTheme } from '../theme/index.js';
 // Activa los controles nativos del sistema y conserva los botones HTML como fallback.
 export function initTitleBar(): void {
   if (typeof window.electronAPI === 'undefined') {
-    console.error('❌ [TitleBar] Error: window.electronAPI es undefined (revisa el preload script)');
+    console.error('[AIA][Renderer][TitleBar] window.electronAPI no está disponible. Revisa el preload script.');
     return;
   }
 
@@ -29,7 +29,7 @@ function initFallbackControls(): void {
   const closeButton = document.getElementById('closeButton') as HTMLButtonElement | null;
 
   if (!minimizeButton || !maximizeButton || !closeButton) {
-    console.error('❌ [TitleBar] Error: No se encontraron los controles de fallback');
+    console.error('[AIA][Renderer][TitleBar] No se encontraron los controles de fallback.');
     return;
   }
 
@@ -65,7 +65,7 @@ function initFallbackControls(): void {
           </svg>
         `;
     } catch (error) {
-      console.error('❌ [TitleBar] Error al consultar isMaximized:', error);
+      console.error('[AIA][Renderer][TitleBar] No se pudo consultar el estado de maximización.', error);
     }
   };
 
