@@ -8,10 +8,7 @@ import {
   type TitleBarTheme,
 } from '../../shared/window.js';
 
-export { APP_TITLE, TITLE_BAR_HEIGHT };
-export type { TitleBarPlatform, TitleBarTheme } from '../../shared/window.js';
-
-export const TITLE_BAR_OVERLAY_COLORS = {
+const TITLE_BAR_OVERLAY_COLORS = {
   light: { color: '#f3f3f1', symbolColor: '#5f5f5b' },
   dark: { color: '#181818', symbolColor: '#c7c7c4' },
 } as const;
@@ -24,7 +21,7 @@ export function getCurrentTitleBarTheme(): TitleBarTheme {
   return activeTitleBarTheme;
 }
 
-export function getWindowAppearanceOptions(
+function getWindowAppearanceOptions(
   initialTheme: TitleBarTheme = getCurrentTitleBarTheme(),
 ): BrowserWindowConstructorOptions {
   if (process.platform === 'darwin') {

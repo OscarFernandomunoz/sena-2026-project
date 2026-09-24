@@ -154,16 +154,10 @@ export async function executeInFrames<T>(
 }
 
 // Simula un movimiento y clic del mouse en la posición detectada en la pantalla del navegador.
-export function clickAtPoint(window: BrowserWindow, point: ClickPoint): void {
+function clickAtPoint(window: BrowserWindow, point: ClickPoint): void {
   window.webContents.sendInputEvent({ type: 'mouseMove', x: point.x, y: point.y });
   window.webContents.sendInputEvent({ type: 'mouseDown', x: point.x, y: point.y, button: 'left' });
   window.webContents.sendInputEvent({ type: 'mouseUp', x: point.x, y: point.y, button: 'left' });
-}
-
-export async function doubleClickAtPoint(window: BrowserWindow, point: ClickPoint): Promise<void> {
-  clickAtPoint(window, point);
-  await wait(120);
-  clickAtPoint(window, point);
 }
 
 // Dibuja un marcador visual en la ventana indicando dónde se haría clic (modo demostración).
@@ -288,60 +282,6 @@ export async function clickScript(
     await showClickMarker(window, point, errorMessage.replace('No se encontró ', ''));
   } else {
     clickAtPoint(window, point);
-  }
-}
-
-export async function doubleClickScript(
-  window: BrowserWindow,
-  script: string,
-  errorMessage: string,
-): Promise<void> {
-  await wait(ACTION_DELAY_MS);
-  await patchSofiaPageGuards(window);
-  const point = await executeInFrames<ClickPoint | null>(window, script, Boolean);
-  if (!point) throw new Error(errorMessage);
-  if (DEMO_MODE) {
-    await showClickMarker(window, point, `DOBLE: ${errorMessage.replace('No se encontró ', '')}`, '#007aff');
-  } else {
-    await doubleClickAtPoint(window, point);
-  }
-}
-
-export async function repeatedClickScript(
-  window: BrowserWindow,
-  script: string,
-  errorMessage: string,
-  clickCount: number,
-  intervalMilliseconds: number,
-): Promise<void> {
-  await wait(ACTION_DELAY_MS);
-  await patchSofiaPageGuards(window);
-  const point = await executeInFrames<ClickPoint | null>(window, script, Boolean);
-  if (!point) throw new Error(errorMessage);
-  if (DEMO_MODE) {
-    await showClickMarker(window, point, `${clickCount} clics: ${errorMessage.replace('No se encontró ', '')}`, '#ff9500');
-  } else {
-    for (let clickNumber = 1; clickNumber <= clickCount; clickNumber += 1) {
-      clickAtPoint(window, point);
-      console.log(`Clic ${clickNumber} de ${clickCount} realizado en Consultar.`);
-      if (clickNumber < clickCount) await wait(intervalMilliseconds);
-    }
-  }
-}
-
-export async function frameClickScript(
-  window: BrowserWindow,
-  script: string,
-  errorMessage: string,
-): Promise<void> {
-  await wait(ACTION_DELAY_MS);
-  await patchSofiaPageGuards(window);
-  const clicked = await executeInFrames<boolean>(window, script, Boolean);
-  if (!clicked) throw new Error(errorMessage);
-  if (DEMO_MODE) {
-    console.log(`🎯 [DEMO] Clic en iframe NO ejecutado: ${errorMessage.replace('No se encontró ', '')}`);
-  } else {
-    console.log('Clic único ejecutado dentro del iframe.');
   }
 }
 

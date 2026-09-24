@@ -72,7 +72,6 @@ html.icons-ready .app-icon {
   flex: 1;
 }
 
-.input-wrapper i,
 .input-icon {
   position: absolute;
   top: 50%;
@@ -191,11 +190,6 @@ html.icons-ready .app-icon {
   stroke-dasharray: 180;
   stroke-dashoffset: 180;
   animation: svg-draw 620ms var(--ease-out) forwards;
-}
-
-.theme-toggle.is-switching .svg-moon,
-.theme-toggle.is-switching .theme-icon {
-  animation: svg-draw 620ms var(--ease-out) both, svg-spin 620ms var(--ease-out) both;
 }
 
 @keyframes svg-pop {
@@ -384,10 +378,6 @@ html.icons-ready .app-icon {
   width: 14px;
   height: 14px;
   color: currentColor;
-}
-
-.theme-toggle.is-switching .theme-icon {
-  animation: svg-spin 520ms var(--ease-out) both;
 }
 
 .panel-status .app-icon {

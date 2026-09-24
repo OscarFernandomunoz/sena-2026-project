@@ -32,14 +32,6 @@
   transform: translateY(0);
 }
 
-.theme-toggle.is-switching i {
-  animation: theme-icon-switch 480ms var(--ease-out) both;
-}
-
-.theme-toggle.is-switching span {
-  animation: theme-label-switch 480ms var(--ease-out) both;
-}
-
 .theme-toggle {
   -webkit-app-region: no-drag;
 }

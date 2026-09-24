@@ -67,17 +67,6 @@
   margin-left: auto;
 }
 
-.mac-window-controls {
-  position: absolute;
-  top: 50%;
-  left: 14px;
-  z-index: 2;
-  display: none;
-  height: auto;
-  gap: 8px;
-  transform: translateY(-50%);
-}
-
 html[data-title-bar-platform='custom'] .windows-window-controls {
   display: flex;
 }
@@ -86,18 +75,6 @@ html[data-title-bar-platform='win32'] .title-bar-app-icon,
 html[data-title-bar-platform='linux'] .title-bar-app-icon,
 html[data-title-bar-platform='custom'] .title-bar-app-icon {
   display: flex;
-}
-
-html[data-title-bar-platform='darwin'] .mac-window-controls {
-  display: none;
-}
-
-html[data-title-bar-platform='darwin'] .windows-window-controls {
-  display: none;
-}
-
-html[data-title-bar-platform='darwin'] .title-bar-app-icon {
-  display: none;
 }
 
 html[data-title-bar-platform='darwin'] .title-bar {
@@ -159,60 +136,4 @@ html[data-title-bar-platform='linux'] .title-bar {
   height: 10px;
 }
 
-/* Controles de macOS: puntitos de color con símbolos al pasar el cursor. */
-.mac-window-button {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 14px;
-  height: 14px;
-  padding: 0;
-  border: 0.5px solid rgba(0, 0, 0, 0.16);
-  border-radius: 50%;
-  color: rgba(0, 0, 0, 0.68);
-  cursor: pointer;
-  transition: filter 120ms var(--ease-smooth), box-shadow 120ms var(--ease-smooth);
-}
-
-.mac-close-button {
-  background: #ff5f57;
-}
-
-.mac-minimize-button {
-  background: #febc2e;
-}
-
-.mac-fullscreen-button {
-  background: #28c840;
-}
-
-.mac-window-button svg {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  opacity: 0;
-}
-
-.mac-window-controls:hover .mac-window-button svg,
-.mac-window-button:focus-visible svg {
-  opacity: 1;
-}
-
-.mac-window-button:hover {
-  filter: brightness(0.94);
-}
-
-.mac-window-button:active {
-  filter: brightness(0.82);
-}
-
-.mac-window-button:focus-visible {
-  outline: 2px solid var(--text-muted);
-  outline-offset: 2px;
-}
+/* Los controles de macOS y Windows/Linux los dibuja el sistema nativo. */

@@ -6,8 +6,6 @@ import { getTitleBarPlatform, type TitleBarTheme } from '../shared/window.js';
 export const electronAPI = {
   titleBarPlatform: getTitleBarPlatform(),
 
-  getVersion: (): Promise<string> => ipcRenderer.invoke('app:get-version'),
-
   openSofiaAndFill: (credentials: {
     username: string;
     password: string;
@@ -22,7 +20,6 @@ export const electronAPI = {
   // Controles propios usados únicamente como fallback.
   minimize: (): void => ipcRenderer.send('window:minimize'),
   toggleMaximize: (): void => ipcRenderer.send('window:toggle-maximize'),
-  toggleFullScreen: (): void => ipcRenderer.send('window:toggle-full-screen'),
   close: (): void => ipcRenderer.send('window:close'),
   isMaximized: (): Promise<boolean> => ipcRenderer.invoke('window:is-maximized'),
   onMaximizeChange: (callback: (maximized: boolean) => void): () => void => {

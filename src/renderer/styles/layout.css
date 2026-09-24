@@ -120,9 +120,7 @@
   white-space: nowrap;
 }
 
-.panel-status i {
-  font-size: 10px;
-}
+/* El estado del panel usa iconos SVG, no elementos <i>. */
 
 .placeholder-view {
   padding: 40px;

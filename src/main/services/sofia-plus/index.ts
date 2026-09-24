@@ -1,10 +1,6 @@
 import { BrowserWindow } from 'electron';
-import {
-  getAppWindowOptions,
-  getCurrentTitleBarTheme,
-  registerRemoteWindow,
-  TITLE_BAR_HEIGHT,
-} from '../../windows/appearance.js';
+import { getAppWindowOptions, getCurrentTitleBarTheme, registerRemoteWindow } from '../../windows/appearance.js';
+import { TITLE_BAR_HEIGHT } from '../../../shared/window.js';
 import { booleanScript, clickScript, executeInFrames, patchSofiaPageGuards, trackSofiaWindow, wait } from './browser.js';
 import { fillSofiaInputs } from './login.js';
 import {

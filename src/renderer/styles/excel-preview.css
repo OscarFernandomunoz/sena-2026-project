@@ -89,25 +89,6 @@
   color: var(--text-muted);
 }
 
-.excel-selected-column {
-  margin-top: 14px;
-}
-
-.excel-selected-column h4 {
-  margin-bottom: 8px;
-  color: var(--text);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.excel-selected-column-wrapper {
-  max-height: 220px;
-}
-
-.excel-selected-column th {
-  min-width: 220px;
-}
-
 .excel-table-wrapper {
   max-width: 100%;
   max-height: 340px;

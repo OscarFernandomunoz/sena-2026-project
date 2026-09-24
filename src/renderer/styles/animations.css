@@ -1,4 +1,4 @@
-/* Shared layout and theme keyframes. */
+/* Shared layout and icon keyframes. */
 
 @keyframes view-enter {
   from {
@@ -58,31 +58,4 @@
   }
 }
 
-@keyframes theme-icon-switch {
-  0% {
-    opacity: 0;
-    transform: rotate(-55deg) scale(0.7);
-  }
-
-  65% {
-    opacity: 1;
-    transform: rotate(8deg) scale(1.08);
-  }
-
-  100% {
-    opacity: 1;
-    transform: rotate(0) scale(1);
-  }
-}
-
-@keyframes theme-label-switch {
-  0% {
-    opacity: 0;
-    transform: translateX(-5px);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
+/* Las transiciones de tema se aplican directamente mediante el atributo data-theme. */
