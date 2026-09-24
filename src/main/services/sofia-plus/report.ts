@@ -73,12 +73,12 @@ export async function selectCitizenshipId(): Promise<boolean> {
     ?? document.querySelector<HTMLSelectElement>('select[id*="inputTipoIdentificacion"]')
     ?? document.querySelector<HTMLSelectElement>('select');
   if (!(select instanceof HTMLSelectElement)) {
-    console.log('❌ selectCitizenshipId: No se encontró ningún select de Tipo de Identificación.');
+    console.error('[Reporte] No se encontró el selector de tipo de identificación.');
     return false;
   }
-  console.log('🔍 selectCitizenshipId: Select encontrado. Opciones totales:', select.options.length);
+  console.log('[Reporte] Selector de tipo de identificación encontrado. Opciones disponibles:', select.options.length);
   Array.from(select.options).forEach((opt, i) => {
-    console.log(`   [${i}] value="${opt.value}" text="${opt.textContent?.trim()}" normalizado="${normalize(opt.textContent ?? '')}"`);
+    console.log(`[Reporte] Opción ${i}: valor="${opt.value}", texto="${opt.textContent?.trim()}", texto normalizado="${normalize(opt.textContent ?? '')}"`);
   });
   let optionIndex = -1;
   for (const target of targets) {
@@ -92,15 +92,15 @@ export async function selectCitizenshipId(): Promise<boolean> {
     }
   }
   if (optionIndex === -1) {
-    console.log('❌ selectCitizenshipId: Ninguna opción coincide con:', targets);
+    console.warn('[Reporte] Ninguna opción de identificación coincide con los criterios evaluados.', targets);
     return false;
   }
   const option = select.options[optionIndex];
   if (!option) {
-    console.log('❌ selectCitizenshipId: La opción requerida no existe.');
+    console.error('[Reporte] La opción de cédula de ciudadanía no está disponible.');
     return false;
   }
-  console.log('✅ selectCitizenshipId: Seleccionando opción:', optionIndex, '"' + option.textContent?.trim() + '"');
+  console.log(`[Reporte] Opción de cédula seleccionada (índice ${optionIndex}): "${option.textContent?.trim() ?? ''}".`);
   select.selectedIndex = optionIndex;
   select.value = option.value;
   select.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
@@ -111,12 +111,12 @@ export async function selectCitizenshipId(): Promise<boolean> {
 // Escribe la primera identificación del archivo en el campo del diálogo de instructor.
 export async function fillInstructorIdentification(identification: string): Promise<boolean> {
   if (!identification) {
-    console.log('❌ fillInstructorIdentification: No se proporcionó identificación');
+    console.error('[Reporte] No se recibió una identificación para la consulta.');
     return false;
   }
 
-  console.log('🎯 fillInstructorIdentification: CÉDULA A CONSULTAR:', identification);
-  console.log('🔍 fillInstructorIdentification: Buscando input de identificación...');
+  console.log('[Reporte] Iniciando la búsqueda del campo de identificación.');
+  console.log('[Reporte] Se recibió una identificación para consultar.');
 
   // Función auxiliar para verificar si un campo es de fecha
   const isDateField = (input: HTMLInputElement): boolean => {
@@ -139,10 +139,10 @@ export async function fillInstructorIdentification(identification: string): Prom
   const allInputs = Array.from(document.querySelectorAll<HTMLInputElement>('input[type="text"], input[type="number"]'))
     .filter(inp => !isDateField(inp)); // Excluir campos de fecha
 
-  console.log('🔍 Total inputs encontrados (excluyendo fechas):', allInputs.length);
+  console.log('[Reporte] Campos de entrada disponibles, sin campos de fecha:', allInputs.length);
 
   allInputs.forEach((inp, index) => {
-    console.log(`   [${index}] id="${inp.id}" name="${inp.name}" placeholder="${inp.placeholder || ''}" value="${inp.value}" visible=${inp.getClientRects().length > 0}`);
+    console.log(`[Reporte] Campo ${index}: id="${inp.id}", name="${inp.name}", placeholder="${inp.placeholder || ''}", visible=${inp.getClientRects().length > 0}`);
   });
 
   // Intentar encontrar por diferentes criterios
@@ -154,7 +154,7 @@ export async function fillInstructorIdentification(identification: string): Prom
 
   // Verificar que el encontrado no sea un campo de fecha
   if (input && isDateField(input)) {
-    console.log('⚠️ fillInstructorIdentification: Input encontrado por ID pero es campo de fecha, ignorando...');
+    console.warn('[Reporte] El campo encontrado por ID corresponde a una fecha y fue ignorado.');
     input = null;
   }
 
@@ -164,7 +164,7 @@ export async function fillInstructorIdentification(identification: string): Prom
       ?? document.querySelector<HTMLInputElement>('input[name*="Identificacion"]');
 
     if (input && isDateField(input)) {
-      console.log('⚠️ fillInstructorIdentification: Input encontrado por nombre pero es campo de fecha, ignorando...');
+      console.warn('[Reporte] El campo encontrado por nombre corresponde a una fecha y fue ignorado.');
       input = null;
     }
   }
@@ -188,7 +188,7 @@ export async function fillInstructorIdentification(identification: string): Prom
   // 4. Por el segundo input visible después del select de tipo de identificación
   if (!input) {
     const visibleInputs = allInputs.filter(inp => inp.getClientRects().length > 0);
-    console.log('🔍 Inputs visibles (no fecha):', visibleInputs.length);
+    console.log('[Reporte] Campos visibles disponibles, sin campos de fecha:', visibleInputs.length);
 
     // Buscar el input que está cerca del select de tipo de identificación
     const idTypeSelect = document.querySelector<HTMLSelectElement>('select[id$=":inputTipoIdentificacion"]')
@@ -211,18 +211,18 @@ export async function fillInstructorIdentification(identification: string): Prom
   }
 
   if (!(input instanceof HTMLInputElement)) {
-    console.log('❌ fillInstructorIdentification: No se encontró el input de identificación');
+    console.error('[Reporte] No se encontró el campo de identificación del instructor.');
     return false;
   }
 
   // Verificación final de seguridad
   if (isDateField(input)) {
-    console.log('❌ fillInstructorIdentification: El input encontrado parece ser un campo de fecha, abortando para evitar corrupción de datos');
+    console.error('[Reporte] El campo seleccionado parece ser un campo de fecha; la operación se canceló para evitar datos incorrectos.');
     return false;
   }
 
-  console.log('✅ fillInstructorIdentification: Input encontrado. id=', input.id, 'name=', input.name);
-  console.log('📝 Valor antes:', input.value);
+  console.log(`[Reporte] Campo de identificación encontrado (id="${input.id}", name="${input.name}").`);
+  console.log('[Reporte] Preparando el campo para escribir la identificación.');
 
   // Escribir el valor
   const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
@@ -232,14 +232,18 @@ export async function fillInstructorIdentification(identification: string): Prom
   input.dispatchEvent(new Event('change', { bubbles: true }));
   input.focus();
 
-  console.log('📝 Valor después:', input.value);
+  console.log('[Reporte] La identificación fue enviada al campo seleccionado.');
 
   // Pequeño delay para que se pueda ver visualmente el número antes de continuar
   await new Promise(resolve => setTimeout(resolve, 1500));
 
   input.blur();
   const ok = input.value === identification || input.value === String(identification).replace(/\D/g, '');
-  console.log(ok ? '✅ fillInstructorIdentification: Identificación escrita correctamente: ' + input.value : '❌ fillInstructorIdentification: No se pudo escribir, quedó=' + input.value);
+  if (ok) {
+    console.log('[Reporte] La identificación se escribió correctamente en el campo.');
+  } else {
+    console.error('[Reporte] No se pudo escribir la identificación en el campo seleccionado.');
+  }
   return ok;
 }
 
@@ -292,7 +296,7 @@ export function clickInstructorSearchInput(): boolean {
 
   // Busca y devuelve el botón Consultar del diálogo de instructor.
   const findInstructorSearchInput = (): HTMLElement | null => {
-    console.log('🔍 [BOTÓN] Buscando botón Consultar...');
+    console.log('[Reporte] Buscando el control Consultar del instructor.');
 
     // El input señalado por DevTools se incluye aunque el sitio no declare explícitamente
     // type="submit"/"button". El ID JSF es dinámico, pero el sufijo :jbtnSearch no cambia.
@@ -312,19 +316,19 @@ export function clickInstructorSearchInput(): boolean {
     const candidates = rank(visible);
 
     console.log(
-      `🔍 [BOTÓN] Controles: ${controls.length} | visibles: ${visible.length} | candidatos: ${candidates.length} | frame: ${location.href}`,
+      `[Reporte] Controles Consultar: ${controls.length}; visibles: ${visible.length}; candidatos: ${candidates.length}; frame: ${location.pathname}`,
     );
 
     // Lista los candidatos rankeados (id, etiqueta y puntaje) para ver exactamente
     // cuál se eligió y por qué el elegido no tenía id.
     if (candidates.length > 0) {
-      console.log('🔍 [BOTÓN] Candidatos rankeados (mayor puntaje primero):');
+      console.log('[Reporte] Candidatos del control Consultar, ordenados por prioridad.');
       candidates.slice(0, 8).forEach((entry, index) => {
         const element = entry.control as HTMLInputElement;
         const label = element.value || element.textContent?.trim() || '';
         console.log(
-          `   [${index}] score=${entry.score} <${element.tagName.toLowerCase()}> ` +
-          `id="${element.id || '(sin id)'}" texto="${String(label).slice(0, 40)}" ` +
+          `[Reporte] Candidato ${index}: score=${entry.score}, tipo=${element.tagName.toLowerCase()}, ` +
+          `id="${element.id || '(sin id)'}", texto="${String(label).slice(0, 40)}", ` +
           `visible=${isUsable(element)}`,
         );
       });
@@ -334,13 +338,13 @@ export function clickInstructorSearchInput(): boolean {
     if (!best) {
       // Depuración: lista TODOS los botones de formulario del documento (visibles y ocultos)
       // para saber qué hay en pantalla y por qué no coincidi ninguno.
-      console.log('❌ [BOTÓN] Ningún candidato. Botones de formulario presentes:');
+      console.warn('[Reporte] No se encontró un control Consultar visible. Controles inspeccionados:');
       controls.filter((control) => control.matches('input, button')).forEach((control) => {
         const input = control as HTMLInputElement;
         console.log(
-          `   id="${control.id}" type="${input.type ?? ''}" value="${input.value ?? ''}" ` +
-          `texto="${control.textContent?.trim() ?? ''}" visible=${isUsable(control)} ` +
-          `disabled=${control.hasAttribute('disabled')}`,
+          `[Reporte] Control inspeccionado: id="${control.id}", type="${input.type ?? ''}", ` +
+          `value="${input.value ?? ''}", texto="${control.textContent?.trim() ?? ''}", ` +
+          `visible=${isUsable(control)}, disabled=${control.hasAttribute('disabled')}`,
         );
       });
       return null;
@@ -351,7 +355,7 @@ export function clickInstructorSearchInput(): boolean {
     // JSON.stringify en el propio texto: los objetos que se pasan como segundo argumento
     // de console.log llegan a la consola de la app como "[object Object]".
     console.log(
-      `✅ [BOTÓN] Botón Consultar encontrado: ${JSON.stringify({
+      `[Reporte] Control Consultar seleccionado: ${JSON.stringify({
         id: best.id || '(sin id)',
         etiqueta: String(input.value || best.textContent?.trim() || ''),
         tipo: input.type ?? best.tagName,
@@ -359,7 +363,7 @@ export function clickInstructorSearchInput(): boolean {
         posicion: `(${rect.left.toFixed(0)}, ${rect.top.toFixed(0)})`,
         tamano: `${rect.width.toFixed(0)}x${rect.height.toFixed(0)}`,
         coincidencias: candidates.length,
-        frame: location.pathname + location.search.slice(0, 60),
+        frame: location.pathname,
       })}`,
     );
 
@@ -368,7 +372,7 @@ export function clickInstructorSearchInput(): boolean {
 
   const searchInput = findInstructorSearchInput();
   if (!searchInput) {
-    console.log('[PASO 10] Error: no se encontró el input Consultar de la captura');
+    console.error('[Reporte] No se encontró el control Consultar requerido.');
     return false;
   }
 
@@ -385,9 +389,9 @@ export function clickInstructorSearchInput(): boolean {
     esquinaSuperiorIzquierdaLocal: [Math.round(rect.left), Math.round(rect.top)],
     centroLocal: [Math.round(rect.left + (rect.width / 2)), Math.round(rect.top + (rect.height / 2))],
     tamano: [Math.round(rect.width), Math.round(rect.height)],
-    frame: location.href,
+    frame: location.pathname,
   };
-  console.log(`[PASO 10] Input Consultar exacto: ${JSON.stringify(target)}`);
+  console.log(`[Reporte] Control Consultar seleccionado: ${JSON.stringify(target)}`);
 
   try {
     // type="submit" responde a la secuencia estándar de ratón y luego a un único click.
@@ -404,10 +408,10 @@ export function clickInstructorSearchInput(): boolean {
     searchInput.dispatchEvent(new MouseEvent('mouseup', eventOptions));
     searchInput.click();
 
-    console.log(`[PASO 10] Click enviado al input id="${searchInput.id}"`);
+    console.log(`[Reporte] Se envió la activación del control Consultar (id="${searchInput.id}").`);
     return true;
   } catch (error) {
-    console.error('[PASO 10] No se pudo hacer click en el input Consultar:', error);
+    console.error('[Reporte] No se pudo activar el control Consultar.', error);
     return false;
   }
 }
@@ -422,14 +426,14 @@ export function clickInstructorResultLink(): boolean {
   if (!(link instanceof HTMLAnchorElement) || link.getClientRects().length === 0) return false;
 
   const rect = link.getBoundingClientRect();
-  console.log(`[PASO 11] Enlace de resultado encontrado: ${JSON.stringify({
+  console.log(`[Reporte] Enlace del instructor encontrado: ${JSON.stringify({
     id: link.id,
     texto: link.textContent?.trim() ?? '',
     href: link.getAttribute('href') ?? '',
     onclick: link.getAttribute('onclick') ?? '',
     visible: true,
     posicionLocal: [Math.round(rect.left), Math.round(rect.top)],
-    frame: location.href,
+    frame: location.pathname,
   })}`);
 
   try {
@@ -444,97 +448,10 @@ export function clickInstructorResultLink(): boolean {
     link.dispatchEvent(new MouseEvent('mouseup', eventOptions));
     link.click();
 
-    console.log(`[PASO 11] Click enviado al enlace id="${targetId}"`);
+    console.log(`[Reporte] Se envió la activación del enlace del instructor (id="${targetId}").`);
     return true;
   } catch (error) {
-    console.error('[PASO 11] No se pudo hacer click en el enlace del instructor:', error);
+    console.error('[Reporte] No se pudo activar el enlace del instructor.', error);
     return false;
   }
-}
-
-// Comprueba si SofiaPlus ya mostró la lista de usuarios después de pulsar Consultar.
-// Si aún no aparece, imprime en consola una lista COMPLETA de los inputs de la ventana
-// (id, name, type, valor y posición) más el texto visible, para depurar el último paso.
-export async function instructorResultsLoaded(identification?: string): Promise<boolean> {
-  const normalize = (text: string | null | undefined): string => (text ?? '')
-    .trim()
-    .toLocaleLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
-
-  const digitsTarget = (identification ?? '').replace(/\D/g, '');
-  const pageText = normalize(document.body?.textContent ?? '');
-  const hasResultsTitle = pageText.includes('lista de usuarios sena')
-    || pageText.includes('lista de usuarios')
-    || pageText.includes('usuarios sena');
-
-  const rows = Array.from(document.querySelectorAll('table tbody tr'))
-    .filter((row) => row.getClientRects().length > 0 && (row.textContent ?? '').trim());
-
-  // Una fila REAL de resultados trae números largos: la cédula consultada o códigos.
-  // El título solo NO basta: la página ya lo contiene aunque no haya resultados, y eso
-  // hacía que el paso 11 pasara con "filasVisibles: 0" sin que existiera ninguna lista.
-  const hasResultRow = rows.some((row) => {
-    const rowText = row.textContent ?? '';
-    const rowDigits = rowText.replace(/\D/g, '');
-    return /\d{5,}/.test(rowText)
-      || (digitsTarget.length >= 5 && rowDigits.includes(digitsTarget));
-  });
-
-  if (hasResultRow) {
-    console.log(
-      `✅ instructorResultsLoaded: Lista de usuarios encontrada. ${JSON.stringify({
-        conTitulo: hasResultsTitle,
-        filasVisibles: rows.length,
-        frame: location.pathname,
-      })}`,
-    );
-    return true;
-  }
-
-  if (hasResultsTitle) {
-    console.log(
-      `⏳ instructorResultsLoaded: el título "Lista de usuarios" existe pero hay ${rows.length} filas ` +
-      `visibles → aún no es la lista real (frame: ${location.pathname}).`,
-    );
-  }
-
-  // --- Diagnóstico del último paso: lista TODOS los inputs de esta ventana ---
-  // Se imprime una sola vez por página para no repetir la lista en cada reintento.
-  const scope = window as unknown as { __sofiaInputsListed?: boolean };
-  if (!scope.__sofiaInputsListed) {
-    scope.__sofiaInputsListed = true;
-
-    const fields = Array.from(document.querySelectorAll('input, textarea, select'));
-    console.log(`🔎 [PASO 11] Inputs en esta ventana (frame: ${location.pathname}): ${fields.length}`);
-    fields.forEach((field, index) => {
-      const element = field as HTMLInputElement;
-      const rect = element.getBoundingClientRect();
-      const value = String(element.value ?? '').slice(0, 50);
-      console.log(
-        `   [${index}] <${element.tagName.toLowerCase()}> id="${element.id || '(sin id)'}" ` +
-        `name="${element.name || ''}" type="${element.type ?? ''}" value="${value}" ` +
-        `visible=${element.getClientRects().length > 0} disabled=${element.hasAttribute('disabled')} ` +
-        `pos=(${Math.round(rect.left)},${Math.round(rect.top)}) ${Math.round(rect.width)}x${Math.round(rect.height)}`,
-      );
-    });
-
-    const buttons = Array.from(document.querySelectorAll('button, input[type="submit"], input[type="button"]'));
-    console.log(`🔎 [PASO 11] Botones en esta ventana: ${buttons.length}`);
-    buttons.forEach((button, index) => {
-      const element = button as HTMLInputElement;
-      const label = element.value || element.textContent?.trim() || '';
-      console.log(
-        `   [${index}] <${element.tagName.toLowerCase()}> id="${element.id || '(sin id)'}" ` +
-        `texto="${String(label).slice(0, 60)}" visible=${element.getClientRects().length > 0}`,
-      );
-    });
-
-    console.log(
-      '🔎 [PASO 11] Texto visible (500):',
-      (document.body?.innerText ?? '').replace(/\s+/g, ' ').slice(0, 500),
-    );
-  }
-
-  return false;
 }

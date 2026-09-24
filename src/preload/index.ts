@@ -1,9 +1,10 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import { getTitleBarPlatform, type TitleBarTheme } from '../shared/window.js';
 
 // Este API expone una interfaz segura desde el preload hacia el renderer.
 // Se limita a invocar canales IPC definidos en el proceso principal sin permitir acceso directo a Node.
 export const electronAPI = {
-  getVersion: (): Promise<string> => ipcRenderer.invoke('app:get-version'),
+  titleBarPlatform: getTitleBarPlatform(),
 
   openSofiaAndFill: (credentials: {
     username: string;
@@ -13,7 +14,10 @@ export const electronAPI = {
     identification: string;
   }): Promise<void> => ipcRenderer.invoke('sofia:open-and-fill', credentials),
 
-  // Control de ventana desde la title bar custom
+  // Sincroniza el color del overlay nativo de Windows/Linux.
+  setTitleBarTheme: (theme: TitleBarTheme): void => ipcRenderer.send('window:set-title-bar-theme', theme),
+
+  // Controles propios usados únicamente como fallback.
   minimize: (): void => ipcRenderer.send('window:minimize'),
   toggleMaximize: (): void => ipcRenderer.send('window:toggle-maximize'),
   close: (): void => ipcRenderer.send('window:close'),

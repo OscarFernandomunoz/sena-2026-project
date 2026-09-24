@@ -1,4 +1,5 @@
 import { BrowserWindow, webContents, type WebContents, type WebFrameMain } from 'electron';
+import { registerRemoteWindow } from '../../windows/appearance.js';
 import type { ClickPoint } from './types.js';
 
 // Este módulo encapsula la ejecución de scripts dentro de la ventana de SofiaPlus.
@@ -63,8 +64,28 @@ export function trackSofiaWindow(window: BrowserWindow): void {
     if (consoleTracked.has(contents)) return;
     consoleTracked.add(contents);
     contents.on('console-message', (details) => {
-      const message = details.message?.trim();
-      if (message) console.log(`[SOFIA ${details.level}] ${message}`);
+      const message = details.message
+        ?.replace(/\p{Extended_Pictographic}/gu, '')
+        .replace(/\uFE0F/g, '')
+        .trim();
+      if (!message) return;
+
+      const level = details.level === 'error'
+        ? 'ERROR'
+        : details.level === 'warning'
+          ? 'WARN'
+          : details.level === 'debug'
+            ? 'DEBUG'
+            : 'INFO';
+      const formattedMessage = `[AIA][SofiaPlus][${level}] ${message}`;
+
+      if (level === 'ERROR') {
+        console.error(formattedMessage);
+      } else if (level === 'WARN') {
+        console.warn(formattedMessage);
+      } else {
+        console.log(formattedMessage);
+      }
     });
   };
 
@@ -80,6 +101,7 @@ export function trackSofiaWindow(window: BrowserWindow): void {
       const children = childWindows.get(window);
       children?.add(child);
       child.on('closed', () => children?.delete(child));
+      registerRemoteWindow(child);
       track(child.webContents);
     });
   };
@@ -152,16 +174,10 @@ export async function executeInFrames<T>(
 }
 
 // Simula un movimiento y clic del mouse en la posición detectada en la pantalla del navegador.
-export function clickAtPoint(window: BrowserWindow, point: ClickPoint): void {
+function clickAtPoint(window: BrowserWindow, point: ClickPoint): void {
   window.webContents.sendInputEvent({ type: 'mouseMove', x: point.x, y: point.y });
   window.webContents.sendInputEvent({ type: 'mouseDown', x: point.x, y: point.y, button: 'left' });
   window.webContents.sendInputEvent({ type: 'mouseUp', x: point.x, y: point.y, button: 'left' });
-}
-
-export async function doubleClickAtPoint(window: BrowserWindow, point: ClickPoint): Promise<void> {
-  clickAtPoint(window, point);
-  await wait(120);
-  clickAtPoint(window, point);
 }
 
 // Dibuja un marcador visual en la ventana indicando dónde se haría clic (modo demostración).
@@ -267,7 +283,7 @@ async function showClickMarker(
       try { await frame.executeJavaScript(script); } catch { /* ignore */ }
     }
   }
-  console.log(`🎯 [DEMO] Click NO ejecutado. Posición marcada: (${point.x.toFixed(1)}, ${point.y.toFixed(1)}) - ${label}`);
+  console.log(`[AIA][SofiaPlus] Modo demostración: no se ejecutó el clic; posición marcada (${point.x.toFixed(1)}, ${point.y.toFixed(1)}): ${label}`);
 }
 
 // Ejecuta una acción basada en un script que debe devolver una posición y luego hace clic en esa coordenada.
@@ -275,71 +291,19 @@ export async function clickScript(
   window: BrowserWindow,
   script: string,
   errorMessage: string,
-  foundLog?: string,
+  targetDescription?: string,
 ): Promise<void> {
   await wait(ACTION_DELAY_MS);
   await patchSofiaPageGuards(window);
   const point = await executeInFrames<ClickPoint | null>(window, script, Boolean);
-  if (foundLog) console.log(foundLog, Boolean(point));
+  if (targetDescription) {
+    console.log(`[AIA][SofiaPlus] ${targetDescription}: ${point ? 'encontrado' : 'no encontrado'}.`);
+  }
   if (!point) throw new Error(errorMessage);
   if (DEMO_MODE) {
     await showClickMarker(window, point, errorMessage.replace('No se encontró ', ''));
   } else {
     clickAtPoint(window, point);
-  }
-}
-
-export async function doubleClickScript(
-  window: BrowserWindow,
-  script: string,
-  errorMessage: string,
-): Promise<void> {
-  await wait(ACTION_DELAY_MS);
-  await patchSofiaPageGuards(window);
-  const point = await executeInFrames<ClickPoint | null>(window, script, Boolean);
-  if (!point) throw new Error(errorMessage);
-  if (DEMO_MODE) {
-    await showClickMarker(window, point, `DOBLE: ${errorMessage.replace('No se encontró ', '')}`, '#007aff');
-  } else {
-    await doubleClickAtPoint(window, point);
-  }
-}
-
-export async function repeatedClickScript(
-  window: BrowserWindow,
-  script: string,
-  errorMessage: string,
-  clickCount: number,
-  intervalMilliseconds: number,
-): Promise<void> {
-  await wait(ACTION_DELAY_MS);
-  await patchSofiaPageGuards(window);
-  const point = await executeInFrames<ClickPoint | null>(window, script, Boolean);
-  if (!point) throw new Error(errorMessage);
-  if (DEMO_MODE) {
-    await showClickMarker(window, point, `${clickCount} clics: ${errorMessage.replace('No se encontró ', '')}`, '#ff9500');
-  } else {
-    for (let clickNumber = 1; clickNumber <= clickCount; clickNumber += 1) {
-      clickAtPoint(window, point);
-      console.log(`Clic ${clickNumber} de ${clickCount} realizado en Consultar.`);
-      if (clickNumber < clickCount) await wait(intervalMilliseconds);
-    }
-  }
-}
-
-export async function frameClickScript(
-  window: BrowserWindow,
-  script: string,
-  errorMessage: string,
-): Promise<void> {
-  await wait(ACTION_DELAY_MS);
-  await patchSofiaPageGuards(window);
-  const clicked = await executeInFrames<boolean>(window, script, Boolean);
-  if (!clicked) throw new Error(errorMessage);
-  if (DEMO_MODE) {
-    console.log(`🎯 [DEMO] Clic en iframe NO ejecutado: ${errorMessage.replace('No se encontró ', '')}`);
-  } else {
-    console.log('Clic único ejecutado dentro del iframe.');
   }
 }
 

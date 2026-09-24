@@ -1,0 +1,61 @@
+/* Shared layout and icon keyframes. */
+
+@keyframes view-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes content-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes icon-scroll-in {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) rotate(-8deg) scale(0.86);
+  }
+
+  65% {
+    opacity: 1;
+    transform: translateY(-3px) rotate(2deg) scale(1.04);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(0) scale(1);
+  }
+}
+
+@keyframes input-icon-scroll-in {
+  0% {
+    opacity: 0;
+    transform: translateY(calc(-50% + 14px)) rotate(-8deg) scale(0.86);
+  }
+
+  65% {
+    opacity: 1;
+    transform: translateY(calc(-50% - 3px)) rotate(2deg) scale(1.04);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(-50%) rotate(0) scale(1);
+  }
+}
+
+/* Las transiciones de tema se aplican directamente mediante el atributo data-theme. */

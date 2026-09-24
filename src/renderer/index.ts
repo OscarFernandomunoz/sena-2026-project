@@ -1,9 +1,9 @@
-import { initFileHandling } from '../components/renderer/excelPreview.js';
-import { initLiveContext, initClock } from '../components/renderer/liveContext.js';
-import { initSubmit } from '../components/renderer/submit.js';
-import { initTheme } from '../components/renderer/theme.js';
-import { initTitleBar } from '../components/renderer/titleBar.js';
-import type { AppElements, FileUploadState } from '../components/renderer/types.js';
+import { initFileHandling } from './components/excel-preview.js';
+import { initLiveContext, initClock } from './components/live-context.js';
+import { initSubmit } from './components/submit.js';
+import { initTitleBar } from './components/title-bar.js';
+import { initTheme } from './theme/index.js';
+import type { AppElements, FileUploadState } from './types.js';
 
 function getElements(): AppElements {
   return {
@@ -22,7 +22,6 @@ function getElements(): AppElements {
     inputPass: document.getElementById('password') as HTMLInputElement,
     inputStartDate: document.getElementById('fechaInicio') as HTMLInputElement,
     inputEndDate: document.getElementById('fechaFin') as HTMLInputElement,
-    inputIdentification: document.getElementById('identificacion') as HTMLInputElement,
     themeToggle: document.getElementById('themeToggle') as HTMLButtonElement,
   };
 }
@@ -140,10 +139,10 @@ function initApp(): void {
   const elements = getElements();
   const state: FileUploadState = { file: null, firstIdentification: null, isUploading: false };
 
+  initTheme(elements);
   initTitleBar();
   initClock(elements);
   void initLiveContext(elements);
-  initTheme(elements);
   initFileHandling(elements, state);
   initSubmit(elements, state);
   initIconScrollAnimations();

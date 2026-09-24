@@ -1,6 +1,6 @@
 import { app, BrowserWindow } from 'electron';
-import { registerIpcHandlers } from '../components/ipcHandlers.js';
-import { createMainWindow } from '../components/windowManager.js';
+import { registerIpcHandlers } from './ipc/handlers.js';
+import { createMainWindow } from './windows/manager.js';
 
 app.commandLine.appendSwitch('ignore-certificate-errors');
 
@@ -19,7 +19,7 @@ app.whenReady().then(() => {
       }
     });
   } catch (error) {
-    console.error('Error al inicializar la aplicación:', error);
+    console.error('[AIA][Main] No se pudo inicializar la aplicación.', error);
   }
 });
 

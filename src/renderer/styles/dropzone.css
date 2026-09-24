@@ -1,0 +1,297 @@
+/* File dropzone and its interaction states. */
+
+.dropzone {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  min-height: 142px;
+  padding: 24px 28px;
+  margin-bottom: var(--excel-preview-gap);
+  border: 1.5px dashed color-mix(in srgb, #6b6b6b 38%, var(--border-strong));
+  border-radius: 18px;
+  background: linear-gradient(135deg, color-mix(in srgb, #f4f4f2 42%, var(--surface-muted)), var(--surface-muted) 62%);
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 5px 18px rgba(0, 0, 0, 0.05);
+  transition: border-color 420ms var(--ease-smooth), background 420ms var(--ease-smooth), box-shadow 420ms var(--ease-out), transform 420ms var(--ease-out);
+}
+
+.dropzone::before {
+  position: absolute;
+  inset: -45% 45% -45% -20%;
+  z-index: 0;
+  content: "";
+  pointer-events: none;
+  background: radial-gradient(circle, color-mix(in srgb, #737373 12%, transparent), transparent 68%);
+  opacity: 0.26;
+  transform: scale(0.86);
+  transition: opacity 420ms var(--ease-smooth), transform 620ms var(--ease-out);
+}
+
+.dropzone::after {
+  position: absolute;
+  top: 0;
+  right: 12%;
+  left: 12%;
+  z-index: 0;
+  height: 1px;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.86), transparent);
+}
+
+.dropzone:hover,
+.dropzone.dragover {
+  border-color: #1c1c1c;
+  background: linear-gradient(135deg, color-mix(in srgb, #fafafa 52%, var(--surface-muted)), color-mix(in srgb, #e8e8e5 34%, var(--surface-muted)));
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.13), 0 0 0 4px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.58);
+  transform: translateY(-3px);
+}
+
+.dropzone:hover::before,
+.dropzone.dragover::before {
+  opacity: 0.5;
+  transform: scale(1.1);
+}
+
+.dropzone.dragover {
+  border-style: solid;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18), 0 0 0 5px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  transform: translateY(-4px) scale(1.004);
+}
+
+.dropzone:active {
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.11), 0 0 0 3px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px) scale(0.997);
+}
+
+.dropzone.dropzone-valid {
+  border-color: color-mix(in srgb, #4b4b4b 62%, var(--border-strong));
+  background: linear-gradient(135deg, color-mix(in srgb, #eeeeec 44%, var(--surface-muted)), var(--surface-muted) 64%);
+}
+
+.dropzone.dropzone-error {
+  border-color: #dc2626;
+  background: linear-gradient(135deg, color-mix(in srgb, #fee2e2 48%, var(--surface-muted)), var(--surface-muted) 62%);
+  animation: dropzone-error-shake 380ms var(--ease-out);
+}
+
+.dropzone-content,
+.dropzone-illustration-wrap {
+  position: relative;
+  z-index: 1;
+}
+
+.dropzone-content {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+}
+
+.dropzone-copy {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.dropzone-eyebrow {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* El contenedor de la barra de título es arrastrable */
+.title-bar {
+  -webkit-app-region: drag;
+}
+
+/* IMPORTANTE: Los botones DEBEN ignorar el drag para ser clickeables */
+#minimizeButton,
+#maximizeButton,
+#closeButton {
+  -webkit-app-region: no-drag;
+}
+
+.dropzone-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 60px;
+  height: 60px;
+  color: #1f1f1f;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), color-mix(in srgb, #e8e8e5 68%, var(--surface)));
+  box-shadow: 0 9px 20px rgba(0, 0, 0, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+  transition: color 320ms var(--ease-smooth), background 320ms var(--ease-smooth), box-shadow 360ms var(--ease-out), transform 420ms var(--ease-out);
+}
+
+.dropzone-icon-halo {
+  position: absolute;
+  inset: -8px;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  border-radius: 24px;
+  animation: dropzone-halo-pulse 3.2s var(--ease-smooth) infinite;
+}
+
+.dropzone-cloud-float {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  display: block;
+  width: 48px;
+  height: 38px;
+  transform: translateX(-50%);
+  animation: dropzone-cloud-float 3.4s var(--ease-smooth) infinite;
+}
+
+.cloud-icon {
+  display: block;
+  width: 48px;
+  height: 38px;
+  filter: drop-shadow(0 5px 5px rgba(0, 0, 0, 0.12));
+}
+
+.dropzone-arrow-float {
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  display: block;
+  width: 22px;
+  height: 22px;
+  color: #111111;
+  transform: translateX(-50%);
+  animation: dropzone-arrow-float 2.1s var(--ease-smooth) infinite;
+}
+
+.upload-arrow-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.16));
+}
+
+.dropzone-valid-badge {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: #ffffff;
+  border: 3px solid var(--surface-muted);
+  border-radius: 999px;
+  background: linear-gradient(145deg, #3a3a3a, #080808);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.28);
+  opacity: 0;
+  transform: scale(0.45) rotate(-20deg);
+  transition: opacity 280ms var(--ease-smooth), transform 420ms var(--ease-out);
+}
+
+.dropzone-valid-badge svg {
+  width: 15px;
+  height: 15px;
+}
+
+.dropzone.dropzone-valid .dropzone-valid-badge {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+.dropzone:hover .dropzone-icon,
+.dropzone.dragover .dropzone-icon {
+  color: #050505;
+  box-shadow: 0 13px 26px rgba(0, 0, 0, 0.19), inset 0 1px 0 rgba(255, 255, 255, 0.86);
+  transform: translateY(-2px) scale(1.055) rotate(-2deg);
+}
+
+.dropzone.dragover .dropzone-arrow-float {
+  animation: dropzone-arrow-launch 850ms var(--ease-smooth) infinite;
+}
+
+.dropzone.dropzone-valid .dropzone-icon {
+  color: #111111;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), color-mix(in srgb, #e4e4e1 72%, var(--surface)));
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+.dropzone-text {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.55;
+  transition: color 320ms var(--ease-smooth), transform 420ms var(--ease-out);
+}
+
+
+/* Ajuste monocromo para modo oscuro: fondos oscuros y elementos con contraste estable. */
+:root[data-theme='dark'] .dropzone {
+  border-color: #4a4a4a;
+  background: linear-gradient(135deg, #202020 0%, #121212 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme='dark'] .dropzone::before {
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.035), transparent 68%);
+}
+
+:root[data-theme='dark'] .dropzone:hover,
+:root[data-theme='dark'] .dropzone.dragover {
+  border-color: #a6a6a3;
+  background: linear-gradient(135deg, #202020 0%, #151515 100%);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.48), 0 0 0 4px rgba(255, 255, 255, 0.055), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme='dark'] .dropzone.dragover {
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.56), 0 0 0 5px rgba(255, 255, 255, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme='dark'] .dropzone.dropzone-valid {
+  border-color: #777777;
+  background: linear-gradient(135deg, #262626 0%, #151515 100%);
+}
+
+:root[data-theme='dark'] .dropzone-eyebrow {
+  color: #d4d4d0;
+}
+
+:root[data-theme='dark'] .dropzone-text {
+  color: #b8b8b4;
+}
+
+:root[data-theme='dark'] .dropzone:hover .dropzone-text,
+:root[data-theme='dark'] .dropzone.dragover .dropzone-text {
+  color: #f1f1ef;
+}
+
+:root[data-theme='dark'] .dropzone-icon {
+  color: #111111;
+  border-color: rgba(255, 255, 255, 0.12);
+  background: linear-gradient(145deg, #f5f5f3 0%, #d7d7d3 100%);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.44), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme='dark'] .dropzone:hover .dropzone-icon,
+:root[data-theme='dark'] .dropzone.dragover .dropzone-icon {
+  color: #000000;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.52), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+:root[data-theme='dark'] .dropzone-icon-halo {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+:root[data-theme='dark'] .dropzone-valid-badge {
+  color: #111111;
+  border-color: #202020;
+  background: linear-gradient(145deg, #ffffff, #c9c9c5);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.48);
+}

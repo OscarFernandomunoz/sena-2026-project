@@ -1,0 +1,147 @@
+/* Native/custom title bar and window controls. */
+
+/* Barra inspirada en VS Code con controles adaptados al sistema operativo. */
+.title-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: var(--title-bar-height);
+  min-height: var(--title-bar-height);
+  overflow: hidden;
+  background: var(--title-bar-bg);
+  border-bottom: 1px solid var(--border);
+  -webkit-app-region: drag;
+  user-select: none;
+  transition: background-color 260ms var(--ease-smooth), border-color 260ms var(--ease-smooth);
+}
+
+:root[data-theme='dark'] .title-bar {
+  border-bottom-color: var(--surface);
+}
+
+:root[data-theme='light'] .title-bar {
+  border-bottom-color: var(--bg);
+}
+
+.title-bar-app-icon {
+  position: relative;
+  z-index: 2;
+  display: none;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  margin-left: 10px;
+  object-fit: contain;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+.title-bar-drag-region {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  -webkit-app-region: drag;
+}
+
+.title-bar-title {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max-content;
+  max-width: calc(100% - 300px);
+  overflow: hidden;
+  color: var(--title-bar-text);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.title-bar-controls {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  height: 100%;
+  -webkit-app-region: no-drag;
+}
+
+.windows-window-controls {
+  display: none;
+  margin-left: auto;
+}
+
+html[data-title-bar-platform='custom'] .windows-window-controls {
+  display: flex;
+}
+
+html[data-title-bar-platform='win32'] .title-bar-app-icon,
+html[data-title-bar-platform='linux'] .title-bar-app-icon,
+html[data-title-bar-platform='custom'] .title-bar-app-icon {
+  display: flex;
+}
+
+html[data-title-bar-platform='darwin'] .title-bar {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+html[data-title-bar-platform='win32'] .title-bar-title,
+html[data-title-bar-platform='linux'] .title-bar-title,
+html[data-title-bar-platform='custom'] .title-bar-title {
+  left: calc(50% - var(--title-bar-overlay-center-offset));
+  max-width: calc(100% - var(--title-bar-overlay-width) - 150px);
+}
+
+html[data-title-bar-platform='darwin'] .title-bar-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+html[data-title-bar-platform='win32'] .title-bar {
+  font-family: "Segoe UI Variable Text", "Segoe UI", sans-serif;
+}
+
+html[data-title-bar-platform='linux'] .title-bar {
+  font-family: Cantarell, Ubuntu, sans-serif;
+}
+
+/* Controles de Windows/Linux: transparentes y con el mismo color que la barra. */
+.title-bar-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--title-bar-text);
+  cursor: pointer;
+  transition: background-color 120ms var(--ease-smooth), color 120ms var(--ease-smooth);
+}
+
+.title-bar-button:hover {
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--text);
+}
+
+.title-bar-button.close-button:hover {
+  background: #c42b1c;
+  color: white;
+}
+
+.title-bar-button:focus-visible {
+  outline: 1px solid var(--text-muted);
+  outline-offset: -3px;
+}
+
+.title-bar-button svg {
+  width: 10px;
+  height: 10px;
+}
+
+/* Los controles de macOS y Windows/Linux los dibuja el sistema nativo. */

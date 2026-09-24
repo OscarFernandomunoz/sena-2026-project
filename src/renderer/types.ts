@@ -26,6 +26,5 @@ export interface AppElements {
   inputPass: HTMLInputElement;
   inputStartDate: HTMLInputElement;
   inputEndDate: HTMLInputElement;
-  inputIdentification: HTMLInputElement;
   themeToggle: HTMLButtonElement;
 }

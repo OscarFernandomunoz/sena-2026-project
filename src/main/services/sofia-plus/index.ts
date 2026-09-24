@@ -1,4 +1,6 @@
 import { BrowserWindow } from 'electron';
+import { getAppWindowOptions, getCurrentTitleBarTheme, registerRemoteWindow } from '../../windows/appearance.js';
+import { TITLE_BAR_HEIGHT } from '../../../shared/window.js';
 import { booleanScript, clickScript, executeInFrames, patchSofiaPageGuards, trackSofiaWindow, wait } from './browser.js';
 import { fillSofiaInputs } from './login.js';
 import {
@@ -34,7 +36,7 @@ function showStepBanner(window: BrowserWindow, stepNumber: number, stepTitle: st
       const title = ${JSON.stringify(stepTitle)};
       const pct = Math.round((step / total) * 100);
       banner.style.position = 'fixed';
-      banner.style.top = '12px';
+      banner.style.top = '${TITLE_BAR_HEIGHT + 12}px';
       banner.style.right = '12px';
       banner.style.zIndex = '2147483647';
       banner.style.background = '#11161c';
@@ -62,7 +64,11 @@ function showStepBanner(window: BrowserWindow, stepNumber: number, stepTitle: st
     })();
   `;
   return executeInFrames<boolean>(window, script, Boolean, 5).then(() => {
-    console.log(`\n🚩 PASO ${stepNumber}/${TOTAL_STEPS}: ${stepTitle}\n`);
+    const cleanStepTitle = stepTitle
+      .replace(/\p{Extended_Pictographic}/gu, '')
+      .replace(/\uFE0F/g, '')
+      .trim();
+    console.log(`[AIA][SofiaPlus] Paso ${stepNumber}/${TOTAL_STEPS}: ${cleanStepTitle}`);
   });
 }
 
@@ -75,9 +81,10 @@ async function loadWindow(): Promise<BrowserWindow> {
   const window = new BrowserWindow({
     width: 1200,
     height: 800,
-    autoHideMenuBar: true,
+    ...getAppWindowOptions(getCurrentTitleBarTheme()),
     webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
+  registerRemoteWindow(window);
   sofiaWindow = window;
   window.on('closed', () => { sofiaWindow = null; });
   // Permite que executeInFrames alcance también las ventanas emergentes del sitio
@@ -103,7 +110,13 @@ async function loadWindow(): Promise<BrowserWindow> {
       return window;
     } catch (error) {
       lastLoadError = error instanceof Error ? error : new Error(String(error));
-      await wait(500 * (attempt + 1));
+      const attemptNumber = attempt + 1;
+      if (attemptNumber < 3) {
+        console.warn(`[AIA][SofiaPlus] No se pudo cargar SofiaPlus en el intento ${attemptNumber}/3; se reintentará.`, error);
+        await wait(500 * attemptNumber);
+      } else {
+        console.error('[AIA][SofiaPlus] No se pudo cargar SofiaPlus después de 3 intentos.', error);
+      }
     }
   }
   window.close();
@@ -138,7 +151,7 @@ export async function openSofiaPlus(credentials: SofiaCredentials): Promise<void
   await booleanScript(window, `(${findInstructorPicker.toString()})()`, 'No se encontró el botón para seleccionar el instructor.');
 
   void showStepBanner(window, 9, '🆔 Tipo de Identificación → Cédula + número');
-  await clickScript(window, `(${openIdentificationTypeSelect.toString()})()`, 'No se encontró el campo Tipo de Identificación.', 'inputTipoIdentificacion encontrado:');
+  await clickScript(window, `(${openIdentificationTypeSelect.toString()})()`, 'No se encontró el campo Tipo de Identificación.', 'Control de tipo de identificación');
   await booleanScript(window, `(${selectCitizenshipId.toString()})()`, 'No se encontró la opción Cédula de ciudadanía.');
   await booleanScript(window, `(${fillInstructorIdentification.toString()})(${JSON.stringify(credentials.identification)})`, 'No se encontró el campo de identificación del instructor.');
 
@@ -163,7 +176,7 @@ export async function openSofiaPlus(credentials: SofiaCredentials): Promise<void
   );
   console.log(
     resultLinkClicked
-      ? '[PASO 11] SÍ existía el enlace y el click fue enviado correctamente.'
-      : '[PASO 11] NO apareció el enlace "frmFuncionario:dtFuncionarios:0:cmdlnkShow" después de esperar.',
+      ? '[AIA][SofiaPlus] Paso 11 completado: el enlace del instructor fue encontrado y activado correctamente.'
+      : '[AIA][SofiaPlus] Paso 11 incompleto: el enlace del instructor no apareció después de agotar los reintentos.',
   );
 }

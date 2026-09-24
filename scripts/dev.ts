@@ -1,11 +1,19 @@
 import * as esbuild from 'esbuild';
-import { rmSync, copyFileSync, mkdirSync, existsSync } from 'node:fs';
+import { rmSync, copyFileSync, cpSync, mkdirSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { spawn, ChildProcess } from 'node:child_process';
 import electronPath from 'electron';
 
 const rootDir: string = process.cwd();
 let electronProcess: ChildProcess | null = null;
+let electronStarted = false;
+
+const INITIAL_BUILD_COUNT = 3;
+const completedInitialBuilds = new Set<string>();
+let resolveInitialBuilds: (() => void) | undefined;
+const initialBuildsReady = new Promise<void>((resolve) => {
+  resolveInitialBuilds = resolve;
+});
 
 // 1. Copia assets estáticos del Renderer (HTML, CSS e imágenes)
 function copyStaticAssets(): void {
@@ -19,9 +27,10 @@ function copyStaticAssets(): void {
     copyFileSync(htmlSrc, resolve(distRendererDir, 'index.html'));
   }
 
-  const cssSrc = resolve(rootDir, 'src/renderer/style.css');
-  if (existsSync(cssSrc)) {
-    copyFileSync(cssSrc, resolve(distRendererDir, 'style.css'));
+  const stylesSrc = resolve(rootDir, 'src/renderer/styles');
+  const stylesDist = resolve(distRendererDir, 'styles');
+  if (existsSync(stylesSrc)) {
+    cpSync(stylesSrc, stylesDist, { recursive: true });
   }
 
   const publicImagesDir = resolve(rootDir, 'public/images');
@@ -45,19 +54,20 @@ function startElectron(): void {
     electronProcess = null;
   }
 
-  console.log('🚀 Iniciando Electron...');
-  // --enable-logging hace que los console.log del renderer (SofiaPlus) se impriman
-  // en esta terminal, así se puede depurar el flujo paso a paso.
-  electronProcess = spawn(String(electronPath), ['.', '--enable-logging'], {
+  console.log('[AIA][Dev] Iniciando el proceso de Electron.');
+  // No activamos --enable-logging para evitar duplicar cada console.log del renderer
+  // como "INFO:CONSOLE". Los logs útiles de SofiaPlus se reenvían desde el proceso main.
+  electronProcess = spawn(String(electronPath), ['.'], {
     cwd: rootDir,
     stdio: 'inherit',
     env: { ...process.env, NODE_ENV: 'development' },
   });
+  electronStarted = true;
 
   electronProcess.on('close', (code) => {
     // Evitamos cerrar el proceso dev si Electron fue matado deliberadamente para reiniciar
     if (code !== null && code !== 0) {
-      console.log(`👋 Electron cerró con código: ${code}`);
+      console.warn(`[AIA][Dev] El proceso de Electron se cerró inesperadamente (código ${code}).`);
     }
   });
 }
@@ -69,28 +79,36 @@ const reloadElectronPlugin = (name: string): esbuild.Plugin => ({
     let isFirstBuild = true;
     build.onEnd((result) => {
       if (result.errors.length > 0) {
-        console.error(`❌ Error recompilando ${name}:`, result.errors);
+        console.error(`[AIA][Dev] Error al recompilar ${name}.`, result.errors);
         return;
       }
 
-      console.log(`⚡ Recompilación exitosa de ${name}`);
+      console.log(`[AIA][Dev] ${name} recompilado correctamente.`);
 
       if (isFirstBuild) {
         isFirstBuild = false;
-      } else {
-        console.log(`🔄 Cambio detectado en ${name} (.ts). Reiniciando Electron...`);
-        startElectron();
+        completedInitialBuilds.add(name);
+        if (completedInitialBuilds.size === INITIAL_BUILD_COUNT) {
+          resolveInitialBuilds?.();
+        }
+        return;
       }
+
+      // No reiniciar durante la compilación inicial; Electron se inicia al final.
+      if (!electronStarted) return;
+
+      console.log(`[AIA][Dev] Se detectaron cambios en ${name}; reiniciando Electron.`);
+      startElectron();
     });
   },
 });
 
 // 4. Función principal de compilación y observación
 async function dev(): Promise<void> {
-  console.log('🧹 Limpiando carpeta dist/...');
+  console.log('[AIA][Dev] Limpiando el directorio dist...');
   rmSync(resolve(rootDir, 'dist'), { recursive: true, force: true });
 
-  console.log('📁 Copiando archivos estáticos...');
+  console.log('[AIA][Dev] Copiando archivos estáticos...');
   copyStaticAssets();
 
   const sharedConfig: esbuild.BuildOptions = {
@@ -134,20 +152,24 @@ async function dev(): Promise<void> {
     platform: 'browser',
     target: 'chrome120',
     format: 'esm',
+    plugins: [reloadElectronPlugin('Renderer')],
   });
 
-  console.log('👀 Observando cambios en archivos TypeScript (src/**/*.ts)...');
+  console.log('[AIA][Dev] Observando cambios en los archivos TypeScript (src/**/*.ts)...');
   await Promise.all([
     mainCtx.watch(),
     preloadCtx.watch(),
     rendererCtx.watch(),
   ]);
 
+  // No abrir la ventana hasta que las tres salidas iniciales estén listas.
+  await initialBuildsReady;
+
   // Primera ejecución de Electron
   startElectron();
 }
 
 dev().catch((err) => {
-  console.error('❌ Error al iniciar el entorno de desarrollo:', err);
+  console.error('[AIA][Dev] No se pudo iniciar el entorno de desarrollo.', err);
   process.exit(1);
 });
