@@ -1,3 +1,5 @@
+import type { TitleBarPlatform } from '../shared/window.js';
+
 // Define la forma del API expuesto desde el preload para que TypeScript reconozca window.electronAPI.
 export interface IElectronAPI {
   // Consulta la versión instalada de la app.
@@ -16,7 +18,7 @@ export interface IElectronAPI {
   setTheme: (theme: 'light' | 'dark') => void;
 
   // Control de la ventana (TitleBar)
-  titleBarPlatform: 'darwin' | 'win32' | 'linux' | 'custom';
+  titleBarPlatform: TitleBarPlatform;
   setTitleBarTheme: (theme: 'light' | 'dark') => void;
   minimize: () => void;
   toggleMaximize: () => void;

@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import type { AppElements, FileUploadState } from './types.js';
+import type { AppElements, FileUploadState } from '../types.js';
 
 const REQUIRED_COLUMN_NUMBER = 3;
 const REQUIRED_COLUMN_NAME = `Columna ${REQUIRED_COLUMN_NUMBER}`;

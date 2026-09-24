@@ -1,3 +1,5 @@
+import { subscribeToTheme } from '../theme/index.js';
+
 // Activa los controles nativos del sistema y conserva los botones HTML como fallback.
 export function initTitleBar(): void {
   if (typeof window.electronAPI === 'undefined') {
@@ -9,7 +11,9 @@ export function initTitleBar(): void {
   document.documentElement.dataset.titleBarPlatform = titleBarPlatform;
 
   if (titleBarPlatform !== 'custom') {
-    initNativeTitleBarTheme();
+    subscribeToTheme((theme) => {
+      window.electronAPI.setTitleBarTheme(theme);
+    });
   }
 
   // En macOS, Windows y Linux los controles ya los dibuja el sistema operativo.
@@ -17,21 +21,6 @@ export function initTitleBar(): void {
 
   initFallbackControls();
   initFallbackDoubleClick();
-}
-
-function initNativeTitleBarTheme(): void {
-  const syncTitleBarTheme = (): void => {
-    const theme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
-    window.electronAPI.setTitleBarTheme(theme);
-  };
-
-  syncTitleBarTheme();
-
-  const themeObserver = new MutationObserver(syncTitleBarTheme);
-  themeObserver.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ['data-theme'],
-  });
 }
 
 function initFallbackControls(): void {

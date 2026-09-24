@@ -1,4 +1,4 @@
-import type { AppElements, FileUploadState } from './types.js';
+import type { AppElements, FileUploadState } from '../types.js';
 
 function setSubmitState(button: HTMLButtonElement, state: 'idle' | 'loading' | 'success' | 'error'): void {
   const label = button.querySelector<HTMLSpanElement>('.btn-label');

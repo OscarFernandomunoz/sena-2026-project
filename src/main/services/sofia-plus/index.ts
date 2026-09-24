@@ -4,7 +4,7 @@ import {
   getCurrentTitleBarTheme,
   registerRemoteWindow,
   TITLE_BAR_HEIGHT,
-} from '../windowAppearance.js';
+} from '../../windows/appearance.js';
 import { booleanScript, clickScript, executeInFrames, patchSofiaPageGuards, trackSofiaWindow, wait } from './browser.js';
 import { fillSofiaInputs } from './login.js';
 import {

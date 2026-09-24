@@ -1,28 +1,24 @@
 import { nativeTheme, type BrowserWindow, type BrowserWindowConstructorOptions } from 'electron';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import {
+  APP_TITLE,
+  getTitleBarPlatform,
+  TITLE_BAR_HEIGHT,
+  type TitleBarTheme,
+} from '../../shared/window.js';
 
-export const APP_TITLE = 'AIA - Gestión de Nómina';
-export const TITLE_BAR_HEIGHT = 36;
+export { APP_TITLE, TITLE_BAR_HEIGHT };
+export type { TitleBarPlatform, TitleBarTheme } from '../../shared/window.js';
 
 export const TITLE_BAR_OVERLAY_COLORS = {
   light: { color: '#f3f3f1', symbolColor: '#5f5f5b' },
   dark: { color: '#181818', symbolColor: '#c7c7c4' },
 } as const;
 
-export type TitleBarTheme = keyof typeof TITLE_BAR_OVERLAY_COLORS;
-export type TitleBarPlatform = 'darwin' | 'win32' | 'linux' | 'custom';
-
 let activeTitleBarTheme: TitleBarTheme = nativeTheme.shouldUseDarkColors ? 'dark' : 'light';
 let appIconDataUrl = '';
 const remoteWindows = new WeakSet<BrowserWindow>();
-
-export function getTitleBarPlatform(): TitleBarPlatform {
-  if (process.platform === 'darwin' || process.platform === 'win32' || process.platform === 'linux') {
-    return process.platform;
-  }
-  return 'custom';
-}
 
 export function getCurrentTitleBarTheme(): TitleBarTheme {
   return activeTitleBarTheme;
@@ -101,6 +97,15 @@ export function registerRemoteWindow(window: BrowserWindow): void {
 
   window.webContents.on('dom-ready', decorate);
   window.webContents.on('did-finish-load', decorate);
+  window.webContents.on('did-frame-finish-load', decorate);
+
+  // Algunos portales reescriben el documento después de dom-ready; estos
+  // reintentos garantizan que la barra vuelva a quedar visible sin tocar su contenido.
+  const retryTimer = setInterval(decorate, 500);
+  const stopRetries = (): void => clearInterval(retryTimer);
+  setTimeout(stopRetries, 10_000);
+  window.once('closed', stopRetries);
+
   window.webContents.setWindowOpenHandler(() => ({
     action: 'allow',
     overrideBrowserWindowOptions: getAppWindowOptions(getCurrentTitleBarTheme()),

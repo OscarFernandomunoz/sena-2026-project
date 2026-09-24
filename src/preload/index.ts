@@ -1,14 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-
-type TitleBarTheme = 'light' | 'dark';
-type TitleBarPlatform = 'darwin' | 'win32' | 'linux' | 'custom';
-
-function getTitleBarPlatform(): TitleBarPlatform {
-  if (process.platform === 'darwin' || process.platform === 'win32' || process.platform === 'linux') {
-    return process.platform;
-  }
-  return 'custom';
-}
+import { getTitleBarPlatform, type TitleBarTheme } from '../shared/window.js';
 
 // Este API expone una interfaz segura desde el preload hacia el renderer.
 // Se limita a invocar canales IPC definidos en el proceso principal sin permitir acceso directo a Node.

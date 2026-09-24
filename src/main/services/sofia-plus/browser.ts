@@ -1,5 +1,5 @@
 import { BrowserWindow, webContents, type WebContents, type WebFrameMain } from 'electron';
-import { registerRemoteWindow } from '../windowAppearance.js';
+import { registerRemoteWindow } from '../../windows/appearance.js';
 import type { ClickPoint } from './types.js';
 
 // Este módulo encapsula la ejecución de scripts dentro de la ventana de SofiaPlus.

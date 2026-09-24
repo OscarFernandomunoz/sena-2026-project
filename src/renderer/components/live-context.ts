@@ -1,4 +1,4 @@
-import type { AppElements, LocationData } from './types.js';
+import type { AppElements, LocationData } from '../types.js';
 
 export function initClock(elements: Pick<AppElements, 'clock' | 'date'>): void {
   const updateTime = (): void => {

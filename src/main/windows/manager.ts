@@ -1,6 +1,6 @@
 import { BrowserWindow } from 'electron';
 import { join } from 'node:path';
-import { getAppWindowOptions, getCurrentTitleBarTheme } from './windowAppearance.js';
+import { getAppWindowOptions, getCurrentTitleBarTheme } from './appearance.js';
 
 // Crea la ventana principal de la aplicación con el renderer HTML y el preload seguro.
 export function createMainWindow(): BrowserWindow {

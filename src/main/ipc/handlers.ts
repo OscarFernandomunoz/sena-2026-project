@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
-import { openSofiaPlus, type SofiaCredentials } from './sofiaPlus/index.js';
-import { applyTitleBarTheme } from './windowAppearance.js';
+import { openSofiaPlus, type SofiaCredentials } from '../services/sofia-plus/index.js';
+import { applyTitleBarTheme } from '../windows/appearance.js';
 
 // Registra los canales IPC que usa la app para comunicarse entre el renderer y el proceso principal.
 export function registerIpcHandlers(): void {

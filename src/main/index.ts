@@ -1,6 +1,6 @@
 import { app, BrowserWindow } from 'electron';
-import { registerIpcHandlers } from '../components/ipcHandlers.js';
-import { createMainWindow } from '../components/windowManager.js';
+import { registerIpcHandlers } from './ipc/handlers.js';
+import { createMainWindow } from './windows/manager.js';
 
 app.commandLine.appendSwitch('ignore-certificate-errors');
 
