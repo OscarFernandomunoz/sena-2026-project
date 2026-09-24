@@ -16,62 +16,50 @@
 .btn-submit-inner {
   position: relative;
   z-index: 2;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  width: 100%;
+  gap: 10px;
+  pointer-events: none;
 }
 
-.btn-submit .btn-icon {
-  width: 15px;
-  height: 15px;
-  flex: 0 0 auto;
+html .btn-submit .btn-icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  padding: 4px;
   color: currentColor;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  border-radius: 7px;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  opacity: 0.92;
+  transform: translateY(0) scale(1);
   transform-origin: center;
-  animation: btn-icon-motion 2.8s var(--ease-smooth) infinite;
-  transition: filter 220ms var(--ease-smooth);
+  animation: none;
+  transition: transform 220ms var(--ease-out), background-color 180ms var(--ease-smooth), border-color 180ms var(--ease-smooth), opacity 180ms var(--ease-smooth);
 }
 
-.btn-submit:hover .btn-icon {
-  animation-duration: 1.15s;
-  filter: none;
+.btn-submit:hover:not(:disabled) .btn-icon {
+  animation: btn-icon-motion 1.2s var(--ease-smooth) infinite;
 }
 
 .btn-loader,
 .btn-success {
-  width: 15px;
-  height: 15px;
+  width: 18px;
+  height: 18px;
   color: currentColor;
   opacity: 0;
   transform: scale(0.6);
   pointer-events: none;
   position: absolute;
-  right: 16px;
+  right: 18px;
   transition: opacity 260ms var(--ease-out), transform 260ms var(--ease-out);
 }
 
-.btn-submit {
-  position: relative;
-  display: block;
-  width: fit-content;
-  margin-left: auto;
-  padding: 16px 28px;
-  border: 2px solid var(--accent);
-  border-radius: 16px;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
-  color: var(--accent-contrast);
-  font: inherit;
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  cursor: pointer;
-  box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 25%, transparent), 0 3px 6px rgba(0, 0, 0, 0.15);
-  transition: all 300ms var(--ease-smooth);
-}
-
 .btn-submit.is-loading {
-  padding-right: 40px;
+  padding-right: 52px;
 }
 
 .btn-submit.is-loading .btn-icon {
@@ -92,8 +80,7 @@
 }
 
 .btn-submit.is-success {
-  padding-right: 40px;
-  background-image: linear-gradient(135deg, #059669, #10b981), linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 76%, #0b3d3a));
+  padding-right: 52px;
 }
 
 .btn-submit.is-success .btn-loader {
@@ -110,31 +97,34 @@
   opacity: 0;
 }
 
-/* Botón principal: compacto, monocromo y minimalista. */
+/* Botón principal: compacto, monocromo y con estados de interacción claros. */
 .btn-submit {
   position: relative;
+  isolation: isolate;
   display: flex;
   align-items: center;
   justify-content: center;
   width: fit-content;
-  min-width: 270px;
-  min-height: 44px;
+  min-width: 300px;
+  min-height: 48px;
   margin-left: auto;
-  padding: 0 20px;
+  padding: 0 24px;
   overflow: hidden;
   border: 1px solid var(--primary-border);
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--primary-start);
   color: var(--primary-contrast);
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.025em;
+  letter-spacing: 0.04em;
   line-height: 1;
   text-transform: uppercase;
   cursor: pointer;
-  box-shadow: 0 4px 10px var(--primary-shadow);
-  transition: background 180ms var(--ease-smooth), border-color 180ms var(--ease-smooth), box-shadow 220ms var(--ease-out), transform 220ms var(--ease-out);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 8px 18px var(--primary-shadow), inset 0 1px 0 color-mix(in srgb, #fff 10%, transparent);
+  transition: background-color 180ms var(--ease-smooth), border-color 180ms var(--ease-smooth), box-shadow 220ms var(--ease-out), transform 220ms var(--ease-out);
 }
 
 /* Sin reflejos ni bordes decorativos: solo una superficie monocroma. */
@@ -146,17 +136,17 @@
 .btn-submit:hover:not(:disabled) {
   border-color: var(--primary-hover-end);
   background: var(--primary-hover-start);
-  box-shadow: 0 6px 14px var(--primary-shadow);
-  transform: translateY(-1px);
+  box-shadow: 0 12px 24px var(--primary-shadow), inset 0 1px 0 color-mix(in srgb, #fff 14%, transparent);
+  transform: translateY(-2px);
 }
 
 .btn-submit:hover:not(:disabled) .btn-icon {
-  animation-duration: 0.9s;
+  animation-duration: 1.2s;
 }
 
 .btn-submit:active:not(:disabled) {
-  box-shadow: 0 2px 6px var(--primary-shadow);
-  transform: translateY(0);
+  box-shadow: 0 4px 10px var(--primary-shadow), inset 0 1px 0 color-mix(in srgb, #fff 8%, transparent);
+  transform: translateY(0) scale(0.99);
 }
 
 .btn-submit:focus-visible {
@@ -166,13 +156,19 @@
 
 .btn-submit:disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.56;
   transform: none;
   box-shadow: none;
 }
 
+.btn-submit.is-loading:disabled {
+  cursor: wait;
+  opacity: 0.78;
+}
+
 .btn-submit.is-success {
-  background: var(--primary-start);
+  border-color: color-mix(in srgb, var(--success) 78%, var(--primary-contrast));
+  background: var(--success);
   color: var(--primary-contrast);
-  box-shadow: 0 4px 10px var(--primary-shadow);
+  box-shadow: 0 8px 18px var(--primary-shadow), inset 0 1px 0 color-mix(in srgb, #fff 12%, transparent);
 }
