@@ -14,7 +14,7 @@ export function initThemeSelector(
   const themeOptions = document.querySelectorAll<HTMLButtonElement>('.theme-option');
 
   if (!themeSelector || !themeDropdown || !themeLabel) {
-    console.error('❌ [Theme] No se encontraron los controles del selector de tema');
+    console.error('[AIA][Renderer][Theme] No se encontraron los controles del selector de tema.');
     return;
   }
 

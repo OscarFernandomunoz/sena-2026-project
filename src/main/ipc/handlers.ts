@@ -7,7 +7,12 @@ export function registerIpcHandlers(): void {
   try {
     // Ejecuta el flujo completo de login y manejo de SofiaPlus con las credenciales recibidas.
     ipcMain.handle('sofia:open-and-fill', async (_event, credentials: SofiaCredentials): Promise<void> => {
-      await openSofiaPlus(credentials);
+      try {
+        await openSofiaPlus(credentials);
+      } catch (error) {
+        console.error('[AIA][SofiaPlus] No se pudo completar el flujo de automatización.', error);
+        throw error;
+      }
     });
 
     // Sincroniza el tema y la barra nativa de todas las ventanas de la app.
@@ -43,6 +48,6 @@ export function registerIpcHandlers(): void {
       return BrowserWindow.fromWebContents(event.sender)?.isMaximized() ?? false;
     });
   } catch (error) {
-    console.error('Error al registrar handlers IPC:', error);
+    console.error('[AIA][IPC] No se pudieron registrar los canales IPC.', error);
   }
 }

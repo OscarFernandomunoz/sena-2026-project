@@ -19,7 +19,7 @@ app.whenReady().then(() => {
       }
     });
   } catch (error) {
-    console.error('Error al inicializar la aplicación:', error);
+    console.error('[AIA][Main] No se pudo inicializar la aplicación.', error);
   }
 });
 

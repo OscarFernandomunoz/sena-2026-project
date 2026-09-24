@@ -7,22 +7,22 @@ const rootDir: string = process.cwd();
 const isDev: boolean = process.argv.includes('--watch');
 
 async function build(): Promise<void> {
-  console.time('⚡ Build completado en');
+  console.time('[AIA][Build] Compilación completada');
 
   // 1. Limpiar directorio dist/
   rmSync(resolve(rootDir, 'dist'), { recursive: true, force: true });
 
   // 2. Verificación de tipos estricta sin emitir JS
-  console.log('🔍 Verificando tipos con tsc...');
+  console.log('[AIA][Build] Verificando tipos con TypeScript...');
   try {
     execSync('npx tsc --noEmit', { cwd: rootDir, stdio: 'inherit' });
   } catch (error) {
-    console.error('❌ Error de tipos detectado en TypeScript. ' + error);
+    console.error('[AIA][Build] La verificación de tipos falló.', error);
     process.exit(1);
   }
 
   // 3. Copia de archivos estáticos
-  console.log('📁 Copiando archivos estáticos...');
+  console.log('[AIA][Build] Copiando archivos estáticos...');
   const distRendererDir = resolve(rootDir, 'dist/renderer');
   const distImagesDir = resolve(distRendererDir, 'images');
 
@@ -88,16 +88,16 @@ async function build(): Promise<void> {
   };
 
   // 6. Bundling paralelo
-  console.log('📦 Empaquetando Main, Preload y Renderer...');
+  console.log('[AIA][Build] Empaquetando los procesos Main, Preload y Renderer...');
   try {
     await Promise.all([
       esbuild.build(mainConfig),
       esbuild.build(preloadConfig),
       esbuild.build(rendererConfig),
     ]);
-    console.timeEnd('⚡ Build completado en');
+    console.timeEnd('[AIA][Build] Compilación completada');
   } catch (error) {
-    console.error('❌ Error durante la compilación con esbuild:', error);
+    console.error('[AIA][Build] La compilación con esbuild falló.', error);
     process.exit(1);
   }
 }

@@ -67,7 +67,7 @@ export function applyTitleBarTheme(window: BrowserWindow, theme: TitleBarTheme):
         height: TITLE_BAR_HEIGHT,
       });
     } catch (error) {
-      console.warn('No se pudo actualizar el overlay nativo de la ventana:', error);
+      console.warn('[AIA][Window] No se pudo actualizar el overlay nativo de la ventana.', error);
     }
   }
 
