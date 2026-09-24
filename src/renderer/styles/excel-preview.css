@@ -1,23 +1,27 @@
-/* Excel preview, filters and table styles. */
+/* Excel preview, filters and monochrome data table. */
 
 #fileInput {
   display: none;
 }
 
 .excel-preview {
+  display: grid;
+  gap: 16px;
   width: 100%;
-  margin-bottom: 24px;
-  overflow: hidden;
+  margin-bottom: 28px;
   color: var(--text-muted);
   font-size: 12px;
   animation: content-enter 420ms var(--ease-out) both;
 }
 
-.excel-preview section+section {
-  margin-top: 18px;
-}
-
 .excel-preview section {
+  min-width: 0;
+  padding: 18px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: 0 8px 22px color-mix(in srgb, #000 8%, transparent);
   animation: content-enter 420ms var(--ease-out) both;
 }
 
@@ -30,148 +34,224 @@
 }
 
 .excel-preview h3 {
-  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 14px;
   color: var(--text);
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.excel-preview h3::before {
+  width: 4px;
+  height: 17px;
+  border-radius: 999px;
+  background: var(--accent);
+  content: "";
 }
 
 .excel-preview p {
+  margin: 0;
+  padding: 24px 18px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface-muted);
   color: var(--text-muted);
+  text-align: center;
 }
 
 .excel-filter-bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 9px;
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-muted);
 }
 
 .excel-filter-label {
   color: var(--text-muted);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 750;
+  letter-spacing: 0.02em;
   white-space: nowrap;
 }
 
 .excel-column-select,
 .excel-filter-input {
-  min-height: 30px;
+  min-height: 34px;
   border: 1px solid var(--border-strong);
-  border-radius: 5px;
+  border-radius: 8px;
+  outline: none;
   background: var(--surface);
   color: var(--text);
   font: inherit;
-  font-size: 11px;
-  outline: none;
-  transition: border-color 220ms var(--ease-smooth), background-color 220ms var(--ease-smooth), box-shadow 220ms var(--ease-smooth), transform 220ms var(--ease-out);
+  font-size: 12px;
+  transition: border-color 180ms var(--ease-smooth), box-shadow 180ms var(--ease-smooth), background-color 180ms var(--ease-smooth);
 }
 
 .excel-column-select {
-  max-width: 190px;
-  padding: 0 8px;
+  min-width: 180px;
+  padding: 0 10px;
 }
 
 .excel-filter-input {
-  min-width: 180px;
+  min-width: 220px;
   flex: 1;
-  padding: 6px 9px;
+  padding: 7px 11px;
 }
 
 .excel-column-select:focus,
 .excel-filter-input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
-  transform: translateY(-1px);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.excel-column-select:hover,
+.excel-filter-input:hover {
+  border-color: color-mix(in srgb, var(--text) 42%, var(--border-strong));
+  background: color-mix(in srgb, var(--surface) 92%, var(--surface-muted));
 }
 
 .excel-filter-input::placeholder {
   color: var(--text-muted);
+  opacity: 0.75;
 }
 
 .excel-table-wrapper {
   max-width: 100%;
-  max-height: 340px;
+  max-height: 360px;
   overflow: auto;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--surface) 86%, transparent);
-  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 38%, transparent), var(--shadow-soft);
+  scrollbar-color: var(--border-strong) transparent;
+  scrollbar-width: thin;
   transition: background-color 260ms var(--ease-smooth), border-color 260ms var(--ease-smooth), box-shadow 260ms var(--ease-smooth);
 }
 
+.excel-table-wrapper:hover {
+  border-color: color-mix(in srgb, var(--text) 34%, var(--border-strong));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 42%, transparent), 0 10px 26px color-mix(in srgb, #000 13%, transparent);
+}
+
+.excel-table-wrapper::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.excel-table-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.excel-table-wrapper::-webkit-scrollbar-thumb {
+  border: 3px solid var(--surface);
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+
+.excel-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
 .excel-preview table {
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .excel-preview th,
 .excel-preview td {
-  padding: 9px 12px;
+  max-width: 320px;
+  height: 42px;
+  padding: 10px 14px;
+  overflow: hidden;
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   color: var(--text);
   text-align: left;
-  transition: background-color 68ms cubic-bezier(0.22, 1, 0.36, 1), color 68ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.excel-preview th.excel-required-column,
-.excel-preview td.excel-required-column {
-  background: var(--required-column-bg);
-  font-weight: 600;
-  box-shadow: inset 2px 0 0 var(--accent);
-}
-
-.excel-preview th.excel-required-column::after {
-  content: " *";
-  color: #dc2626;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  transition: background-color 180ms var(--ease-smooth), color 180ms var(--ease-smooth);
 }
 
 .excel-preview th {
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 2;
   min-width: 150px;
   background: var(--table-header);
+  border-right-color: var(--table-header-border);
+  border-bottom-color: var(--table-header-border);
+  color: var(--table-header-text);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  box-shadow: 0 1px 0 var(--table-header-border), 0 5px 12px color-mix(in srgb, #000 16%, transparent);
+}
+
+.excel-preview tbody tr {
+  background: var(--surface);
+  transition: background-color 100ms var(--ease-smooth);
+}
+
+.excel-preview tbody tr:nth-child(even) {
+  background: var(--table-stripe);
+}
+
+.excel-preview tbody tr:hover {
+  background: var(--table-hover);
+}
+
+.excel-preview tbody tr:hover td {
   color: var(--text);
-  font-weight: 700;
-  box-shadow: 0 1px 0 var(--border-strong), 0 5px 12px color-mix(in srgb, var(--text) 5%, transparent);
+}
+
+.excel-preview td.excel-required-column {
+  background: var(--required-column-bg);
+  font-weight: 650;
 }
 
 .excel-preview th.excel-required-column {
   background: var(--required-column-header);
-  color: var(--text);
-  box-shadow: inset 2px 0 0 var(--accent), 0 1px 0 var(--border-strong), 0 5px 12px color-mix(in srgb, var(--text) 5%, transparent);
+  color: var(--table-header-text);
+  box-shadow: 0 1px 0 var(--table-header-border), 0 5px 12px color-mix(in srgb, #000 16%, transparent);
+}
+
+.excel-preview th.excel-required-column::after {
+  color: var(--table-header-text);
+  content: " *";
+  opacity: 0.72;
+}
+
+.excel-preview thead th:hover {
+  background: var(--table-header-hover);
+  color: var(--table-header-text);
 }
 
 .excel-preview thead th.excel-required-column:hover {
-  background: var(--required-column-hover);
-  color: var(--text);
-}
-
-.excel-preview tbody tr:nth-child(even) td {
-  background: var(--table-stripe);
-}
-
-.excel-preview tbody tr:hover td {
-  background: var(--table-hover);
-}
-
-.excel-preview tbody td.excel-required-column {
-  background: var(--required-column-bg);
-  box-shadow: inset 2px 0 0 var(--accent);
+  background: var(--required-column-header-hover);
 }
 
 .excel-preview tbody tr:hover td.excel-required-column {
-  background: var(--required-column-hover);
+  background: var(--required-column-body-hover);
 }
 
 .excel-preview tbody td.excel-required-column:hover {
-  background: var(--required-column-hover);
+  background: var(--required-column-body-hover);
   color: var(--text);
-  box-shadow: inset 2px 0 0 var(--accent);
 }
 
 .excel-preview th:last-child,
@@ -183,11 +263,23 @@
   border-bottom: 0;
 }
 
-.excel-preview tbody td:hover {
-  background: var(--table-hover);
-}
+@media (max-width: 640px) {
+  .excel-preview section {
+    padding: 12px;
+    border-radius: 12px;
+  }
 
-.excel-preview thead th:hover {
-  background: color-mix(in srgb, var(--accent) 14%, var(--surface-muted));
-  color: var(--accent);
+  .excel-filter-bar {
+    align-items: stretch;
+  }
+
+  .excel-filter-label {
+    width: 100%;
+  }
+
+  .excel-column-select,
+  .excel-filter-input {
+    width: 100%;
+    min-width: 0;
+  }
 }
