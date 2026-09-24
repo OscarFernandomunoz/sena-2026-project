@@ -15,6 +15,14 @@
   transition: background-color 260ms var(--ease-smooth), border-color 260ms var(--ease-smooth);
 }
 
+:root[data-theme='dark'] .title-bar {
+  border-bottom-color: var(--surface);
+}
+
+:root[data-theme='light'] .title-bar {
+  border-bottom-color: var(--bg);
+}
+
 .title-bar-app-icon {
   position: relative;
   z-index: 2;

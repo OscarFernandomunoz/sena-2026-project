@@ -9,7 +9,7 @@ import {
 } from '../../shared/window.js';
 
 const TITLE_BAR_OVERLAY_COLORS = {
-  light: { color: '#f3f3f1', symbolColor: '#5f5f5b' },
+  light: { color: '#f7f7f5', symbolColor: '#5f5f5b' },
   dark: { color: '#181818', symbolColor: '#c7c7c4' },
 } as const;
 

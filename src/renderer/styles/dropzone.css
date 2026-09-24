@@ -11,7 +11,7 @@
   width: 100%;
   min-height: 142px;
   padding: 24px 28px;
-  margin-bottom: 24px;
+  margin-bottom: var(--excel-preview-gap);
   border: 1.5px dashed color-mix(in srgb, #6b6b6b 38%, var(--border-strong));
   border-radius: 18px;
   background: linear-gradient(135deg, color-mix(in srgb, #f4f4f2 42%, var(--surface-muted)), var(--surface-muted) 62%);

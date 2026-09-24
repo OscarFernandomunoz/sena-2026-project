@@ -2,7 +2,7 @@
 
 .access-card {
   padding: 22px;
-  margin-bottom: 22px;
+  margin-bottom: var(--section-gap);
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--form-surface);

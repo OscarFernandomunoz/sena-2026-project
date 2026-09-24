@@ -41,8 +41,12 @@
   transition: opacity 300ms var(--ease-smooth);
 }
 
+:root[data-theme='dark'] .content-header {
+  background: var(--surface);
+}
+
 :root[data-theme='dark'] .content-header::before {
-  opacity: 1;
+  opacity: 0;
 }
 
 .content-header>* {
@@ -91,6 +95,16 @@
   background: var(--surface);
   box-shadow: var(--shadow);
   transition: background-color 260ms var(--ease-smooth), border-color 260ms var(--ease-smooth), box-shadow 260ms var(--ease-smooth);
+}
+
+:root[data-theme='dark'] .dashboard-panel {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+:root[data-theme='light'] .dashboard-panel {
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .panel-heading {
