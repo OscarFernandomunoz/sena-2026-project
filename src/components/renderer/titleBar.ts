@@ -8,7 +8,7 @@ export function initTitleBar(): void {
   const titleBarPlatform = window.electronAPI.titleBarPlatform;
   document.documentElement.dataset.titleBarPlatform = titleBarPlatform;
 
-  if (titleBarPlatform === 'win32' || titleBarPlatform === 'linux') {
+  if (titleBarPlatform !== 'custom') {
     initNativeTitleBarTheme();
   }
 

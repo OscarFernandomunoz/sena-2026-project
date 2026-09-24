@@ -1,9 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { openSofiaPlus, type SofiaCredentials } from './sofiaPlus/index.js';
-import {
-  TITLE_BAR_HEIGHT,
-  TITLE_BAR_OVERLAY_COLORS,
-} from './windowManager.js';
+import { applyTitleBarTheme } from './windowAppearance.js';
 
 // Registra los canales IPC que usa la app para comunicarse entre el renderer y el proceso principal.
 export function registerIpcHandlers(): void {
@@ -16,21 +13,13 @@ export function registerIpcHandlers(): void {
       await openSofiaPlus(credentials);
     });
 
-    // Mantiene el overlay nativo de Windows/Linux sincronizado con el tema.
+    // Sincroniza el tema y la barra nativa de todas las ventanas de la app.
     ipcMain.on('window:set-title-bar-theme', (event, theme: unknown) => {
       if (theme !== 'light' && theme !== 'dark') return;
-      if (process.platform !== 'win32' && process.platform !== 'linux') return;
+      if (!BrowserWindow.fromWebContents(event.sender)) return;
 
-      const win = BrowserWindow.fromWebContents(event.sender);
-      if (!win) return;
-
-      try {
-        win.setTitleBarOverlay({
-          ...TITLE_BAR_OVERLAY_COLORS[theme],
-          height: TITLE_BAR_HEIGHT,
-        });
-      } catch (error) {
-        console.warn('No se pudo actualizar el overlay nativo de la barra:', error);
+      for (const window of BrowserWindow.getAllWindows()) {
+        applyTitleBarTheme(window, theme);
       }
     });
 
