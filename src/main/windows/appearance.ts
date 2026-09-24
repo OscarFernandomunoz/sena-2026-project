@@ -8,9 +8,20 @@ import {
   type TitleBarTheme,
 } from '../../shared/window.js';
 
+const TITLE_BAR_THEME_COLORS = {
+  light: { background: '#f7f7f5', text: '#5f5f5b', border: '#f7f7f5' },
+  dark: { background: '#181818', text: '#c7c7c4', border: '#181818' },
+} as const;
+
 const TITLE_BAR_OVERLAY_COLORS = {
-  light: { color: '#f7f7f5', symbolColor: '#5f5f5b' },
-  dark: { color: '#181818', symbolColor: '#c7c7c4' },
+  light: {
+    color: TITLE_BAR_THEME_COLORS.light.background,
+    symbolColor: TITLE_BAR_THEME_COLORS.light.text,
+  },
+  dark: {
+    color: TITLE_BAR_THEME_COLORS.dark.background,
+    symbolColor: TITLE_BAR_THEME_COLORS.dark.text,
+  },
 } as const;
 
 let activeTitleBarTheme: TitleBarTheme = nativeTheme.shouldUseDarkColors ? 'dark' : 'light';
@@ -19,6 +30,16 @@ const remoteWindows = new WeakSet<BrowserWindow>();
 
 export function getCurrentTitleBarTheme(): TitleBarTheme {
   return activeTitleBarTheme;
+}
+
+function isRemoteSofiaWindow(window: BrowserWindow): boolean {
+  if (remoteWindows.has(window)) return true;
+
+  try {
+    return window.webContents.getURL().toLowerCase().includes('senasofiaplus');
+  } catch {
+    return false;
+  }
 }
 
 function getWindowAppearanceOptions(
@@ -51,7 +72,7 @@ export function getAppWindowOptions(
     title: APP_TITLE,
     icon: join(process.cwd(), 'public/images/sofia-plus.png'),
     autoHideMenuBar: true,
-    backgroundColor: initialTheme === 'dark' ? '#090909' : '#f7f7f5',
+    backgroundColor: TITLE_BAR_THEME_COLORS[initialTheme].background,
     ...getWindowAppearanceOptions(initialTheme),
   };
 }
@@ -71,7 +92,7 @@ export function applyTitleBarTheme(window: BrowserWindow, theme: TitleBarTheme):
     }
   }
 
-  if (remoteWindows.has(window)) {
+  if (isRemoteSofiaWindow(window)) {
     void window.webContents.executeJavaScript(buildRemoteChromeScript(theme), true).catch(() => {
       // La página puede estar navegándose; se reintentará en dom-ready.
     });
@@ -93,6 +114,7 @@ export function registerRemoteWindow(window: BrowserWindow): void {
   };
 
   window.webContents.on('dom-ready', decorate);
+  window.webContents.on('did-start-navigation', decorate);
   window.webContents.on('did-finish-load', decorate);
   window.webContents.on('did-frame-finish-load', decorate);
 
@@ -107,6 +129,8 @@ export function registerRemoteWindow(window: BrowserWindow): void {
     action: 'allow',
     overrideBrowserWindowOptions: getAppWindowOptions(getCurrentTitleBarTheme()),
   }));
+
+  decorate();
 }
 
 function getAppIconDataUrl(): string {
@@ -127,9 +151,10 @@ function buildRemoteChromeScript(theme: TitleBarTheme): string {
   const isMac = platform === 'darwin';
   const titleLeft = isMac ? '50%' : 'calc(50% - 69px)';
   const titleMaxWidth = isMac ? '180px' : '300px';
-  const titleBarBackground = theme === 'dark' ? '#181818' : '#f3f3f1';
-  const titleBarText = theme === 'dark' ? '#c7c7c4' : '#5f5f5b';
-  const titleBarBorder = theme === 'dark' ? '#303030' : '#d4d4d0';
+  const titleBarColors = TITLE_BAR_THEME_COLORS[theme];
+  const titleBarBackground = titleBarColors.background;
+  const titleBarText = titleBarColors.text;
+  const titleBarBorder = titleBarColors.border;
   const fontFamily = isMac
     ? '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
     : '"Segoe UI Variable Text", "Segoe UI", sans-serif';
@@ -177,7 +202,7 @@ function buildRemoteChromeScript(theme: TitleBarTheme): string {
       transform: translate(-50%, -50%);
     }
   `;
-  const markup = `<style>${shadowCss}</style>${iconMarkup}<span class="title">${APP_TITLE}</span>`;
+  const markup = `<style>${shadowCss}</style><div class="bar">${iconMarkup}<span class="title">${APP_TITLE}</span></div>`;
   const hostId = '__aia_remote_window_chrome__';
   const pageStyleId = '__aia_remote_window_chrome_style__';
 

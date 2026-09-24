@@ -10,11 +10,9 @@ export function initTitleBar(): void {
   const titleBarPlatform = window.electronAPI.titleBarPlatform;
   document.documentElement.dataset.titleBarPlatform = titleBarPlatform;
 
-  if (titleBarPlatform !== 'custom') {
-    subscribeToTheme((theme) => {
-      window.electronAPI.setTitleBarTheme(theme);
-    });
-  }
+  subscribeToTheme((theme) => {
+    window.electronAPI.setTitleBarTheme(theme);
+  });
 
   // En macOS, Windows y Linux los controles ya los dibuja el sistema operativo.
   if (titleBarPlatform !== 'custom') return;
