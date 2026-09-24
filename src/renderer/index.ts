@@ -139,10 +139,10 @@ function initApp(): void {
   const elements = getElements();
   const state: FileUploadState = { file: null, firstIdentification: null, isUploading: false };
 
+  initTheme(elements);
   initTitleBar();
   initClock(elements);
   void initLiveContext(elements);
-  initTheme(elements);
   initFileHandling(elements, state);
   initSubmit(elements, state);
   initIconScrollAnimations();

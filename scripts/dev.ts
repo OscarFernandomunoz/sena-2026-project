@@ -6,6 +6,14 @@ import electronPath from 'electron';
 
 const rootDir: string = process.cwd();
 let electronProcess: ChildProcess | null = null;
+let electronStarted = false;
+
+const INITIAL_BUILD_COUNT = 3;
+const completedInitialBuilds = new Set<string>();
+let resolveInitialBuilds: (() => void) | undefined;
+const initialBuildsReady = new Promise<void>((resolve) => {
+  resolveInitialBuilds = resolve;
+});
 
 // 1. Copia assets estáticos del Renderer (HTML, CSS e imágenes)
 function copyStaticAssets(): void {
@@ -53,6 +61,7 @@ function startElectron(): void {
     stdio: 'inherit',
     env: { ...process.env, NODE_ENV: 'development' },
   });
+  electronStarted = true;
 
   electronProcess.on('close', (code) => {
     // Evitamos cerrar el proceso dev si Electron fue matado deliberadamente para reiniciar
@@ -77,10 +86,18 @@ const reloadElectronPlugin = (name: string): esbuild.Plugin => ({
 
       if (isFirstBuild) {
         isFirstBuild = false;
-      } else {
-        console.log(`🔄 Cambio detectado en ${name} (.ts). Reiniciando Electron...`);
-        startElectron();
+        completedInitialBuilds.add(name);
+        if (completedInitialBuilds.size === INITIAL_BUILD_COUNT) {
+          resolveInitialBuilds?.();
+        }
+        return;
       }
+
+      // No reiniciar durante la compilación inicial; Electron se inicia al final.
+      if (!electronStarted) return;
+
+      console.log(`🔄 Cambio detectado en ${name} (.ts). Reiniciando Electron...`);
+      startElectron();
     });
   },
 });
@@ -134,6 +151,7 @@ async function dev(): Promise<void> {
     platform: 'browser',
     target: 'chrome120',
     format: 'esm',
+    plugins: [reloadElectronPlugin('Renderer')],
   });
 
   console.log('👀 Observando cambios en archivos TypeScript (src/**/*.ts)...');
@@ -142,6 +160,9 @@ async function dev(): Promise<void> {
     preloadCtx.watch(),
     rendererCtx.watch(),
   ]);
+
+  // No abrir la ventana hasta que las tres salidas iniciales estén listas.
+  await initialBuildsReady;
 
   // Primera ejecución de Electron
   startElectron();

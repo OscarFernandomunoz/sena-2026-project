@@ -3,41 +3,54 @@ import type { AppElements } from './types.js';
 type Theme = 'light' | 'dark' | 'system';
 
 export function initTheme(elements: Pick<AppElements, 'themeToggle'>): void {
-  // Usar sistema por defecto, limpiar valores antiguos si no son válidos
-  const savedTheme = localStorage.getItem('aia-theme') as Theme;
+  const savedTheme = localStorage.getItem('aia-theme') as Theme | null;
   const validThemes: Theme[] = ['light', 'dark', 'system'];
   const initialTheme = savedTheme && validThemes.includes(savedTheme) ? savedTheme : 'system';
 
-  const themeDropdown = document.getElementById('themeDropdown') as HTMLElement;
-  const themeLabel = document.getElementById('themeLabel') as HTMLElement;
-  const themeOptions = document.querySelectorAll('.theme-option') as NodeListOf<HTMLButtonElement>;
+  const themeToggle = elements.themeToggle;
+  const themeSelector = themeToggle.closest<HTMLElement>('.theme-selector');
+  const themeDropdown = document.getElementById('themeDropdown');
+  const themeLabel = document.getElementById('themeLabel');
+  const themeOptions = document.querySelectorAll<HTMLButtonElement>('.theme-option');
 
-  // Aplicar tema inicial
+  if (!themeSelector || !themeDropdown || !themeLabel) {
+    console.error('❌ [Theme] No se encontraron los controles del selector de tema');
+    return;
+  }
+
+  const setDropdownOpen = (isOpen: boolean): void => {
+    themeDropdown.classList.toggle('is-open', isOpen);
+    themeToggle.setAttribute('aria-expanded', String(isOpen));
+  };
+
+  // Usar el sistema por defecto y aplicar el tema guardado.
   applyTheme(initialTheme, themeLabel);
+  setDropdownOpen(false);
 
-  // Toggle dropdown
-  elements.themeToggle.addEventListener('click', (e) => {
-    e.stopPropagation();
-    themeDropdown.classList.toggle('is-open');
+  themeToggle.addEventListener('click', (event) => {
+    event.stopPropagation();
+    setDropdownOpen(!themeDropdown.classList.contains('is-open'));
   });
 
-  // Cerrar dropdown al hacer clic fuera
-  document.addEventListener('click', () => {
-    themeDropdown.classList.remove('is-open');
+  // Cerrar únicamente cuando el clic ocurre fuera del selector.
+  document.addEventListener('click', (event) => {
+    if (event.target instanceof Node && themeSelector.contains(event.target)) return;
+    setDropdownOpen(false);
   });
 
-  // Manejar selección de tema
-  themeOptions.forEach(option => {
-    option.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const selectedTheme = option.dataset.theme as Theme;
+  themeOptions.forEach((option) => {
+    option.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const selectedTheme = option.dataset.theme as Theme | undefined;
+      if (!selectedTheme || !validThemes.includes(selectedTheme)) return;
+
       localStorage.setItem('aia-theme', selectedTheme);
       applyTheme(selectedTheme, themeLabel);
-      themeDropdown.classList.remove('is-open');
+      setDropdownOpen(false);
     });
   });
 
-  // Escuchar cambios en el tema del sistema
+  // Escuchar cambios del tema del sistema.
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     if (localStorage.getItem('aia-theme') === 'system') {
       applyTheme('system', themeLabel);
@@ -49,8 +62,7 @@ function applyTheme(theme: Theme, label: HTMLElement): void {
   let actualTheme: 'light' | 'dark';
 
   if (theme === 'system') {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    actualTheme = prefersDark ? 'dark' : 'light';
+    actualTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     label.textContent = 'Sistema';
   } else {
     actualTheme = theme;
