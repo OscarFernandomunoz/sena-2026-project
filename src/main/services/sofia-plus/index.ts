@@ -1,4 +1,4 @@
-import { booleanScript, clickScript, executeInFrames } from './browser/index.js';
+import { booleanScript, clickScript, executeInAllFrames, executeInFrames } from './browser/index.js';
 import { fillSofiaInputs } from './login.js';
 import {
   findConsolidatedTimeOption,
@@ -7,7 +7,7 @@ import {
   openAspiranteOptions,
   selectCurriculumOption,
 } from './navigation.js';
-import { clickInstructorResultLink, clickInstructorSearchInput, fillInstructorIdentification, fillReportDates, findInstructorPicker, openIdentificationTypeSelect, selectCitizenshipId } from './report/index.js';
+import { clickInstructorResultLink, clickInstructorSearchInput, fillInstructorIdentification, fillReportDates, findInstructorPicker, inspectInstructorDialog, openIdentificationTypeSelect, selectCitizenshipId } from './report/index.js';
 import type { SofiaCredentials } from './types.js';
 import { showStepBanner } from './flow/step-banner.js';
 import { loadWindow } from './flow/window-loader.js';
@@ -71,4 +71,41 @@ export async function openSofiaPlus(credentials: SofiaCredentials): Promise<void
       ? '[AIA][SofiaPlus] Paso 11 completado: el enlace del instructor fue encontrado y activado correctamente.'
       : '[AIA][SofiaPlus] Paso 11 incompleto: el enlace del instructor no apareció después de agotar los reintentos.',
   );
+
+  // El enlace no apareció: se vuelca el estado de cada frame para saber si la consulta no
+  // devolvió filas, si la tabla no se renderizó o si el enlace quedó tapado por un overlay.
+  if (!resultLinkClicked) {
+    const dumps = (await executeInAllFrames<string>(
+      window,
+      `(${inspectInstructorDialog.toString()})()`,
+    ))
+      .filter((value): value is string => typeof value === 'string' && value.length > 0)
+      .map((value) => JSON.parse(value) as {
+        frame: string;
+        tablas: unknown[];
+        enlaces: unknown[];
+        overlayActivo: boolean;
+        jQueryPresente: boolean;
+        textoVisible: string;
+      });
+
+    for (const dump of dumps) {
+      console.log(
+        `[AIA][SofiaPlus] Frame ${dump.frame}: tablas=${dump.tablas.length}, `
+        + `enlaces=${dump.enlaces.length}, overlay=${dump.overlayActivo}, jQuery=${dump.jQueryPresente}`,
+      );
+    }
+
+    // El volcado completo solo interesa al frame del diálogo del instructor.
+    const dialogs = dumps.filter((dump) => /funcionario|modal/i.test(dump.frame));
+    for (const dialog of dialogs) {
+      console.log(`[AIA][SofiaPlus] Diálogo del instructor: ${JSON.stringify(dialog)}`);
+    }
+    if (dialogs.length === 0) {
+      console.log(
+        `[AIA][SofiaPlus] Ningún frame corresponde al diálogo del instructor. `
+        + `Frames vistos: ${dumps.map((dump) => dump.frame).join(', ') || '(ninguno respondió)'}`,
+      );
+    }
+  }
 }

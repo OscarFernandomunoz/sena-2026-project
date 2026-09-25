@@ -9,3 +9,4 @@ export { openIdentificationTypeSelect, selectCitizenshipId } from './identificat
 export { fillInstructorIdentification } from './identification-field.js';
 export { clickInstructorSearchInput } from './search-button.js';
 export { clickInstructorResultLink } from './result-link.js';
+export { inspectInstructorDialog } from './inspect-dialog.js';

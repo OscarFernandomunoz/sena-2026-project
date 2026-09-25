@@ -1,167 +1,179 @@
-// Pulsa el enlace del instructor devuelto por la consulta y propaga sus parámetros
-// al formulario destino cuando el portal lo abre en una ventana emergente.
+// Selecciona al instructor a partir del enlace devuelto por la consulta.
 //
-// ⚠️ Las funciones de esta carpeta se serializan con `.toString()` y se ejecutan dentro de
-// la página de SofiaPlus. NO pueden referenciar imports, constantes de módulo ni helpers
-// externos: todo lo que usen debe existir dentro del propio cuerpo de cada función.
+// El portal resuelve la selección con un manejador inline (`enviarParametro`, en
+// sofiaPopUp.js) que busca un formulario en la ventana que abrió el diálogo. En Electron
+// esa búsqueda devuelve `undefined` y el manejador revienta con
+// "Cannot read properties of undefined (reading 'elements')", aunque en un Chrome normal
+// funcione: la diferencia es el entorno, no el código del portal.
+//
+// Aquí ese manejador NUNCA se invoca. Se resuelve el formulario destino, se escriben los
+// valores y se envía el formulario, replicando lo que el portal pretendía hacer.
+//
+// ⚠️ Esta función se serializa con `.toString()` y se ejecuta dentro de la página de
+// SofiaPlus. NO puede referenciar imports, constantes de módulo ni helpers externos: todos
+// los auxiliares van dentro del propio cuerpo.
 
-// Espera dentro del flujo y pulsa el enlace exacto generado por la consulta.
-// Usa getElementById porque el ID contiene varios dos puntos y necesitaría
-// escaping especial si se usara como selector CSS.
 export function clickInstructorResultLink(): boolean {
-  const targetId = 'frmFuncionario:dtFuncionario:0:cmdlnkShow';
-  const link = document.getElementById(targetId);
+  // El id esperado incluye el índice de la fila (":0:"), así que con varias filas puede no
+  // coincidir. Se acepta el id exacto y, como respaldo, cualquier enlace de comando del
+  // diálogo: el sufijo cmdlnkShow es el que genera el portal para "ver ficha del funcionario".
+  const findLink = (): HTMLAnchorElement | null => {
+    const exact = document.getElementById('frmFuncionario:dtFuncionario:0:cmdlnkShow');
+    if (exact instanceof HTMLAnchorElement) return exact;
+    const alternatives = Array.from(document.querySelectorAll<HTMLAnchorElement>(
+      'a[id$=":cmdlnkShow"], a[id*="cmdlnkShow"], a.cmdLink[id], a[id$=":cmdlnk"]',
+    ));
+    return alternatives.find((anchor) => anchor.getClientRects().length > 0) ?? alternatives[0] ?? null;
+  };
 
-  if (!(link instanceof HTMLAnchorElement) || link.getClientRects().length === 0) return false;
-
-  const rect = link.getBoundingClientRect();
-  const handler = link.getAttribute('onclick') ?? '';
-  console.log(`[Reporte] Enlace del instructor encontrado: ${JSON.stringify({
+  const link = findLink();
+  if (!(link instanceof HTMLAnchorElement)) return false;
+  // Se registra aunque el enlace no sea visible: es el caso en el que el diálogo se renderizó
+  // pero quedó tapado por un overlay de blockUI, y antes el flujo solo devolvía false en silencio.
+  console.log(`[Reporte] Enlace del instructor: ${JSON.stringify({
     id: link.id,
     texto: link.textContent?.trim() ?? '',
     href: link.getAttribute('href') ?? '',
-    onclick: handler,
-    visible: true,
-    posicionLocal: [Math.round(rect.left), Math.round(rect.top)],
+    onclick: link.getAttribute('onclick') ?? '',
+    visible: link.getClientRects().length > 0,
     frame: location.pathname,
   })}`);
 
-  const argumentMatch = handler.match(/enviarParametro\s*\(\s*(['"])([\s\S]*?)\1\s*,\s*(['"])([\s\S]*?)\3\s*\)/);
-  const decodeArgument = (value: string): string => value
-    .replace(/\\(['"\\])/g, '$1')
-    .replace(/\\n/g, '\n')
-    .replace(/\\r/g, '\r');
+  if (link.getClientRects().length === 0) return false;
 
-  type PopupContext = {
-    owner: Window;
-    form: HTMLFormElement;
-    fieldName: string;
-    firstValue: string;
-    secondValue: string;
-  };
-  type ModalController = {
-    _myfaces_ok?: boolean;
-    hide?: () => void;
+  const handler = link.getAttribute('onclick') ?? '';
+
+  // Secuencia de ratón que espera un input[type=submit] de JSF.
+  const activate = (target: HTMLElement): void => {
+    const options: MouseEventInit = { bubbles: true, cancelable: true, view: window, button: 0, detail: 1 };
+    target.dispatchEvent(new MouseEvent('mousedown', options));
+    target.dispatchEvent(new MouseEvent('mouseup', options));
+    target.click();
   };
 
-  const getTargetForm = (documentRef: Document, formName: string): HTMLFormElement | undefined => {
-    const forms = documentRef.forms;
-    const numericIndex = Number(formName);
-    if (Number.isInteger(numericIndex) && numericIndex >= 0) {
-      const indexedForm = forms[numericIndex];
-      if (indexedForm) return indexedForm;
+  // Sin manejador inline el clic del navegador es seguro: no hay código del portal que reventar.
+  if (!handler.trim()) {
+    activate(link);
+    return true;
+  }
+
+  // El manejador se interpreta sin asumir su firma: cualquier número de argumentos, prefijos
+  // del tipo window.parent.enviarParametro y comas dentro de las cadenas. Solo interesan las
+  // cadenas literales, en orden. El patrón anterior exigía exactamente dos argumentos string
+  // seguidos de ")" y, al no coincidir, delegaba el clic en el manejador roto del portal.
+  const readCall = (source: string): { name: string; args: string[] } | null => {
+    const call = /([A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*)\s*\(/.exec(source);
+    const name = (call?.[1] ?? '').split('.').pop() ?? '';
+    if (!call || !name) return null;
+
+    const args: string[] = [];
+    let depth = 0;
+    let quote = '';
+    let literal = '';
+    for (let i = call[0].length - 1; i < source.length; i += 1) {
+      const char = source[i] ?? '';
+      if (quote) {
+        if (char === '\\') { literal += source[i + 1] ?? ''; i += 1; continue; }
+        if (char === quote) { args.push(literal); literal = ''; quote = ''; continue; }
+        literal += char;
+        continue;
+      }
+      if (char === '"' || char === "'") { quote = char; continue; }
+      if (char === '(') { depth += 1; continue; }
+      if (char === ')') { depth -= 1; if (depth === 0) break; }
     }
-
-    return Array.from(forms).find((form) => form.name === formName || form.id === formName);
+    return { name, args };
   };
 
-  const findPopupContext = (): PopupContext | undefined => {
-    if (!argumentMatch) return undefined;
+  const call = readCall(handler);
+  if (!call) {
+    console.warn('[Reporte] El onclick no contiene ninguna llamada reconocible; no se hace clic para no ejecutar un manejador desconocido.');
+    return false;
+  }
+  console.log(`[Reporte] Manejador reconocido: ${call.name}(${call.args.length} args) -> ${JSON.stringify(call.args)}`);
 
-    const firstValue = decodeArgument(argumentMatch[2] ?? '');
-    const secondValue = decodeArgument(argumentMatch[4] ?? '');
-    const candidateWindows: Window[] = [];
-    const visitedWindows = new Set<Window>();
-    const collectWindows = (candidate: Window | null | undefined): void => {
-      if (!candidate || visitedWindows.has(candidate)) return;
-      visitedWindows.add(candidate);
-      candidateWindows.push(candidate);
-
+  // El formulario puede vivir en el documento propio, en un frame, en el opener o en la
+  // cadena de padres, según cómo el portal montara el diálogo. Se recorren todos.
+  const reachableWindows = (): Window[] => {
+    const found: Window[] = [];
+    const seen = new Set<Window>();
+    const collect = (candidate: Window | null | undefined): void => {
+      if (!candidate || seen.has(candidate)) return;
+      seen.add(candidate);
+      found.push(candidate);
       try {
-        for (let index = 0; index < candidate.frames.length; index += 1) {
-          collectWindows(candidate.frames[index]);
-        }
+        for (let i = 0; i < candidate.frames.length; i += 1) collect(candidate.frames[i]);
       } catch {
         // Una ventana de otro origen puede impedir inspeccionar sus frames.
       }
     };
-
-    // El portal espera encontrar el formulario en window.parent; se incluye
-    // el opener y los frames porque Electron puede separar el popup en otra ventana.
-    collectWindows(window.parent);
-    collectWindows(window.opener);
-    collectWindows(window);
-
-    for (const candidate of candidateWindows) {
-      let forms: HTMLFormElement[];
-      try {
-        forms = Array.from(candidate.document.forms);
-      } catch {
-        continue;
-      }
-
-      for (const markerForm of forms) {
-        const marker = markerForm.elements.namedItem('valorCampo') as HTMLInputElement | null;
-        const rawValue = marker?.value;
-        if (!rawValue) continue;
-
-        const [formName, fieldName] = rawValue.split(':');
-        if (!formName || !fieldName) continue;
-        const targetForm = getTargetForm(candidate.document, formName);
-        if (!targetForm) continue;
-
-        return { owner: candidate, form: targetForm, fieldName, firstValue, secondValue };
-      }
-    }
-
-    return undefined;
+    collect(window);
+    collect(window.parent);
+    collect(window.opener);
+    collect(window.top);
+    return found;
   };
 
-  try {
-    if (argumentMatch) {
-      const popupContext = findPopupContext();
-      if (!popupContext) {
-        const warningWindow = window as Window & { __sofiaPopupContextWarning?: boolean };
-        if (!warningWindow.__sofiaPopupContextWarning) {
-          console.warn('[Reporte] No se encontró el formulario destino del popup; se reintentará sin ejecutar el manejador incompatible.');
-          warningWindow.__sofiaPopupContextWarning = true;
-        }
-        return false;
-      }
+  const windows = reachableWindows();
+  const candidates: { owner: Window; form: HTMLFormElement }[] = [];
+  for (const candidate of windows) {
+    let forms: HTMLFormElement[];
+    try { forms = Array.from(candidate.document.forms); } catch { continue; }
+    for (const form of forms) candidates.push({ owner: candidate, form });
+  }
+  console.log(`[Reporte] Ventanas alcanzables: ${windows.length}; formularios: ${candidates.length}.`);
 
-      const elements = popupContext.form.elements;
-      for (let index = 0; index < elements.length; index += 1) {
-        const element = elements[index] as HTMLInputElement;
-        if (element.id === popupContext.fieldName) element.value = popupContext.firstValue;
-        if (element.id === `hi_${popupContext.fieldName}`) element.value = popupContext.secondValue;
-        if (element.id === `hi_tx_${popupContext.fieldName}`) element.value = popupContext.firstValue;
-      }
+  // El portal marca el formulario con un hidden `valorCampo` = "formulario:campo".
+  let fieldName = '';
+  let target: HTMLFormElement | null = null;
+  for (const entry of candidates) {
+    const marker = entry.form.elements.namedItem('valorCampo') as HTMLInputElement | null;
+    const raw = marker?.value ?? '';
+    const separator = raw.indexOf(':');
+    if (separator <= 0) continue;
+    fieldName = raw.slice(separator + 1);
+    target = entry.form;
+    break;
+  }
 
-      let modalOwner: Window | null = popupContext.owner;
-      while (modalOwner) {
-        const modalHost = modalOwner as Window & { _myfaces_currentModal?: ModalController };
-        const modal = modalHost._myfaces_currentModal;
-        if (modal?.hide) {
-          modal._myfaces_ok = true;
-          modal.hide();
-          break;
-        }
-        if (modalOwner.parent === modalOwner) break;
-        modalOwner = modalOwner.parent;
-      }
-
-      // Si el portal usa una ventana emergente real, el modal no tiene hide().
-      if (window.opener && window.opener !== window) window.close();
-
-      console.log('[Reporte] Se actualizó el formulario del instructor mediante el contexto del popup.');
-      return true;
+  // Alternativa: el propio manejador nombra el campo destino.
+  if (!target) {
+    for (const value of call.args) {
+      const owner = candidates.find((entry) => entry.form.elements.namedItem(value));
+      if (owner) { target = owner.form; fieldName = value; break; }
     }
+  }
 
-    const eventOptions: MouseEventInit = {
-      bubbles: true,
-      cancelable: true,
-      view: window,
-      button: 0,
-      detail: 1,
-    };
-    link.dispatchEvent(new MouseEvent('mousedown', eventOptions));
-    link.dispatchEvent(new MouseEvent('mouseup', eventOptions));
-    link.click();
+  if (!(target instanceof HTMLFormElement) || !fieldName) {
+    console.warn('[Reporte] No se encontró el formulario destino; se reintentará en el siguiente intento.');
+    return false;
+  }
 
-    console.log(`[Reporte] Se envió la activación del enlace del instructor (id="${targetId}").`);
+  const [first, second] = call.args;
+  if (first === undefined) {
+    console.warn('[Reporte] El manejador no pasó ninguna cadena literal; no hay valor que asignar.');
+    return false;
+  }
+
+  // Se escribe el campo y sus compañeros ocultos, que es lo que JSF lee al enviar el formulario.
+  const elements = target.elements;
+  for (let i = 0; i < elements.length; i += 1) {
+    const element = elements[i] as HTMLInputElement;
+    if (element.id === fieldName || element.name === fieldName) element.value = first;
+    if (element.id === `hi_${fieldName}`) element.value = second ?? first;
+    if (element.id === `hi_tx_${fieldName}`) element.value = first;
+  }
+  console.log(`[Reporte] Instructor escrito en "${fieldName}" de "${target.name || target.id || '(sin nombre)'}".`);
+
+  // Enviar el formulario es lo que realmente completa la selección; antes solo se escribían
+  // los valores y se cerraba el diálogo, así que la consulta nunca avanzaba.
+  try {
+    if (typeof target.requestSubmit === 'function') target.requestSubmit();
+    else target.submit();
+    console.log('[Reporte] Formulario enviado sin invocar el manejador del portal.');
     return true;
   } catch (error) {
-    console.error('[Reporte] No se pudo activar el enlace del instructor.', error);
+    console.error('[Reporte] No se pudo enviar el formulario del instructor.', error);
     return false;
   }
 }

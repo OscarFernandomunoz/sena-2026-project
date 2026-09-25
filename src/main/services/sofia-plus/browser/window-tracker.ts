@@ -1,24 +1,17 @@
 import type { BrowserWindow } from 'electron';
 import type { WebContents } from 'electron';
 import { registerRemoteWindow } from '../../../windows/appearance.js';
-import { patchBlockUiScript } from './block-ui-patch.js';
+import { trackChildWindow } from './frames.js';
+import { patchSofiaPageGuards } from './page-guards.js';
 
 // Registra la ventana de SofiaPlus y las ventanas emergentes que abra (a cualquier nivel)
-// para que executeInFrames también pueda inspeccionarlas. Además reenvía al terminal de la
-// app los console.log que se imprimen DENTRO de la página de SofiaPlus: ahí vive toda la
-// depuración de los pasos (botones encontrados, listas de inputs, coordenadas) y sin este
-// reenvío esos mensajes nunca se ven en la consola de la aplicación.
-const childWindows = new WeakMap<BrowserWindow, Set<BrowserWindow>>();
+// para que el descubrimiento de frames también pueda inspeccionarlas. Además reenvía al
+// terminal de la app los console.log que se imprimen DENTRO de la página de SofiaPlus: ahí
+// vive toda la depuración de los pasos (botones encontrados, listas de inputs, coordenadas) y
+// sin este reenvío esos mensajes nunca se ven en la consola de la aplicación.
 const consoleTracked = new WeakSet<WebContents>();
 
-// Devuelve las ventanas emergentes registradas para una ventana principal de SofiaPlus.
-export function getTrackedChildWindows(window: BrowserWindow): ReadonlySet<BrowserWindow> {
-  return childWindows.get(window) ?? new Set<BrowserWindow>();
-}
-
 export function trackSofiaWindow(window: BrowserWindow): void {
-  if (!childWindows.has(window)) childWindows.set(window, new Set());
-
   const forwardConsole = (contents: WebContents): void => {
     if (consoleTracked.has(contents)) return;
     consoleTracked.add(contents);
@@ -48,21 +41,26 @@ export function trackSofiaWindow(window: BrowserWindow): void {
     });
   };
 
-  const track = (contents: WebContents): void => {
+  const track = (target: BrowserWindow): void => {
+    const contents = target.webContents;
     forwardConsole(contents);
-    // Se aplica en cuanto el DOM está disponible, sin bloquear ni interferir con loadURL.
+    // Se aplica sobre TODOS los frames, no solo el principal: el diálogo de instructor vive
+    // en un iframe que el sitio crea más tarde y su jQuery necesita el shim de blockUI.
     contents.on('dom-ready', () => {
-      void contents.executeJavaScript(patchBlockUiScript()).catch(() => {
+      void patchSofiaPageGuards(target).catch(() => {
         // El frame todavía puede estar cambiando durante una navegación.
       });
     });
+    contents.on('did-frame-finish-load', () => {
+      void patchSofiaPageGuards(target).catch(() => {
+        // Un subframe puede terminar de cargar mientras el árbol de frames se reconfigura.
+      });
+    });
     contents.on('did-create-window', (child: BrowserWindow) => {
-      const children = childWindows.get(window);
-      children?.add(child);
-      child.on('closed', () => children?.delete(child));
+      trackChildWindow(window, child);
       registerRemoteWindow(child);
-      track(child.webContents);
+      track(child);
     });
   };
-  track(window.webContents);
+  track(window);
 }

@@ -37,6 +37,7 @@ export {
   fillInstructorIdentification,
   fillReportDates,
   findInstructorPicker,
+  inspectInstructorDialog,
   openIdentificationTypeSelect,
   selectCitizenshipId,
 } from ${JSON.stringify(resolve(root, 'src/main/services/sofia-plus/report/index.ts'))};
@@ -71,6 +72,7 @@ const NAMES = [
   'fillInstructorIdentification',
   'clickInstructorSearchInput',
   'clickInstructorResultLink',
+  'inspectInstructorDialog',
 ];
 
 // Proceso node plano: devuelve el texto EXACTO que se inyectará en la página.
