@@ -21,7 +21,16 @@ async function build(): Promise<void> {
     process.exit(1);
   }
 
-  // 3. Copia de archivos estáticos
+  // 3. Verificación de que los helpers inyectados en la página sigan siendo autocontenidos
+  console.log('[AIA][Build] Verificando helpers serializados de SofiaPlus...');
+  try {
+    execSync('npx tsx scripts/check-serialized-helpers.ts', { cwd: rootDir, stdio: 'inherit' });
+  } catch {
+    console.error('[AIA][Build] Un helper inyectado depende de su ámbito de módulo.');
+    process.exit(1);
+  }
+
+  // 4. Copia de archivos estáticos
   console.log('[AIA][Build] Copiando archivos estáticos...');
   const distRendererDir = resolve(rootDir, 'dist/renderer');
   const distImagesDir = resolve(distRendererDir, 'images');
@@ -47,7 +56,7 @@ async function build(): Promise<void> {
     }
   }
 
-  // 4. Configuración compartida
+  // 5. Configuración compartida
   const sharedConfig: esbuild.BuildOptions = {
     bundle: true,
     minify: !isDev,
@@ -55,7 +64,7 @@ async function build(): Promise<void> {
     tsconfig: resolve(rootDir, 'tsconfig.json'),
   };
 
-  // 5. Especificación por proceso de Electron (TODO en ESM y extensión .js)
+  // 6. Especificación por proceso de Electron (TODO en ESM y extensión .js)
   const mainConfig: esbuild.BuildOptions = {
     ...sharedConfig,
     entryPoints: [resolve(rootDir, 'src/main/index.ts')],
@@ -87,7 +96,7 @@ async function build(): Promise<void> {
     format: 'esm', // <-- ESM
   };
 
-  // 6. Bundling paralelo
+  // 7. Bundling paralelo
   console.log('[AIA][Build] Empaquetando los procesos Main, Preload y Renderer...');
   try {
     await Promise.all([
