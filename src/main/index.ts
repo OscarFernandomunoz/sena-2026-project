@@ -1,8 +1,27 @@
 import { app, BrowserWindow } from 'electron';
 import { registerIpcHandlers } from './ipc/handlers.js';
+import { registerRemoteWindow } from './windows/appearance.js';
 import { createMainWindow } from './windows/manager.js';
 
 app.commandLine.appendSwitch('ignore-certificate-errors');
+
+app.on('browser-window-created', (_event, window) => {
+  const registerIfRemote = (): void => {
+    if (window.isDestroyed()) return;
+
+    try {
+      if (window.webContents.getURL().toLowerCase().includes('senasofiaplus')) {
+        registerRemoteWindow(window);
+      }
+    } catch {
+      // La URL todavía puede no estar disponible durante la creación de la ventana.
+    }
+  };
+
+  window.webContents.on('did-start-navigation', registerIfRemote);
+  window.webContents.on('did-finish-load', registerIfRemote);
+  registerIfRemote();
+});
 
 // El proceso principal inicializa la app, registra los canales IPC y crea la ventana principal.
 app.whenReady().then(() => {
