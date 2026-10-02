@@ -113,13 +113,17 @@ export async function executeInEveryFrame(
 }
 
 // Ejecuta un fragmento de JavaScript en todos los frames activos de la ventana hasta que la condición sea verdadera.
+// `beforeAttempt` es un callback opcional que se ejecuta antes de cada intento (por ejemplo,
+// para aplicar parches en los frames recién creados).
 export async function executeInFrames<T>(
   window: BrowserWindow,
   script: string,
   predicate: (value: T) => boolean,
   attempts = 30,
+  beforeAttempt?: () => Promise<void>,
 ): Promise<T | undefined> {
   for (let attempt = 0; attempt < attempts; attempt += 1) {
+    if (beforeAttempt) await beforeAttempt();
     const frames = collectFrames(window);
     for (const frame of frames) {
       try {

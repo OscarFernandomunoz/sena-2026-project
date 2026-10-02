@@ -1,4 +1,4 @@
-import { booleanScript, clickScript, executeInAllFrames, executeInFrames } from './browser/index.js';
+import { booleanScript, clickScript, clearPageMarkers, wait } from './browser/index.js';
 import { fillSofiaInputs } from './login.js';
 import {
   findConsolidatedTimeOption,
@@ -7,7 +7,7 @@ import {
   openAspiranteOptions,
   selectCurriculumOption,
 } from './navigation.js';
-import { clickInstructorResultLink, clickInstructorSearchInput, fillInstructorIdentification, fillReportDates, findInstructorPicker, inspectInstructorDialog, openIdentificationTypeSelect, selectCitizenshipId } from './report/index.js';
+import { clickInstructorResultLink, clickInstructorSearchInput, fillInstructorIdentification, fillReportDates, findInstructorPicker, findInstructorSearchPoint, markIdentificationTypeSelect, selectCitizenshipId } from './report/index.js';
 import type { SofiaCredentials } from './types.js';
 import { showStepBanner } from './flow/step-banner.js';
 import { loadWindow } from './flow/window-loader.js';
@@ -42,70 +42,24 @@ export async function openSofiaPlus(credentials: SofiaCredentials): Promise<void
   void showStepBanner(window, 8, '🔍 Abriendo selector de instructor');
   await booleanScript(window, `(${findInstructorPicker.toString()})()`, 'No se encontró el botón para seleccionar el instructor.');
 
+  // Paso 9: en la modal de instructor se elige Cédula y se escribe el número.
   void showStepBanner(window, 9, '🆔 Tipo de Identificación → Cédula + número');
-  await clickScript(window, `(${openIdentificationTypeSelect.toString()})()`, 'No se encontró el campo Tipo de Identificación.', 'Control de tipo de identificación');
+  await booleanScript(window, `(${markIdentificationTypeSelect.toString()})()`, 'No se encontró el campo Tipo de Identificación.');
+  await wait(600);
   await booleanScript(window, `(${selectCitizenshipId.toString()})()`, 'No se encontró la opción Cédula de ciudadanía.');
   await booleanScript(window, `(${fillInstructorIdentification.toString()})(${JSON.stringify(credentials.identification)})`, 'No se encontró el campo de identificación del instructor.');
+  await clearPageMarkers(window);
 
+  // Paso 10: marcar y pulsar el input Consultar.
   void showStepBanner(window, 10, '🖱️ Pulsando input Consultar del instructor');
-  // El input exacto es input#...:btnSearch.btn.btn-info.btn-block[type="submit"].
-  // booleanScript ejecuta la función en el frame que lo contiene; allí se hace un
-  // único click DOM, por lo que no se usan las coordenadas globales del iframe.
-  await booleanScript(
-    window,
-    `(${clickInstructorSearchInput.toString()})()`,
-    'No se encontró o no se pudo pulsar el input Consultar del instructor.',
-  );
+  await booleanScript(window, `(${findInstructorSearchPoint.toString()})()`, 'No se encontró el control Consultar del instructor.');
+  await wait(600);
+  await booleanScript(window, `(${clickInstructorSearchInput.toString()})()`, 'No se encontró o no se pudo pulsar el input Consultar del instructor.');
+  await clearPageMarkers(window);
 
-  void showStepBanner(window, 11, '🖱️ Pulsando enlace del instructor');
-  // La respuesta JSF puede tardar unos segundos en insertar el <a>. Se reintenta durante
-  // aproximadamente 18 segundos y se hace un único click en el enlace exacto cuando aparece.
-  const resultLinkClicked = await executeInFrames<boolean>(
-    window,
-    `(${clickInstructorResultLink.toString()})()`,
-    Boolean,
-    60,
-  );
-  console.log(
-    resultLinkClicked
-      ? '[AIA][SofiaPlus] Paso 11 completado: el enlace del instructor fue encontrado y activado correctamente.'
-      : '[AIA][SofiaPlus] Paso 11 incompleto: el enlace del instructor no apareció después de agotar los reintentos.',
-  );
-
-  // El enlace no apareció: se vuelca el estado de cada frame para saber si la consulta no
-  // devolvió filas, si la tabla no se renderizó o si el enlace quedó tapado por un overlay.
-  if (!resultLinkClicked) {
-    const dumps = (await executeInAllFrames<string>(
-      window,
-      `(${inspectInstructorDialog.toString()})()`,
-    ))
-      .filter((value): value is string => typeof value === 'string' && value.length > 0)
-      .map((value) => JSON.parse(value) as {
-        frame: string;
-        tablas: unknown[];
-        enlaces: unknown[];
-        overlayActivo: boolean;
-        jQueryPresente: boolean;
-        textoVisible: string;
-      });
-
-    for (const dump of dumps) {
-      console.log(
-        `[AIA][SofiaPlus] Frame ${dump.frame}: tablas=${dump.tablas.length}, `
-        + `enlaces=${dump.enlaces.length}, overlay=${dump.overlayActivo}, jQuery=${dump.jQueryPresente}`,
-      );
-    }
-
-    // El volcado completo solo interesa al frame del diálogo del instructor.
-    const dialogs = dumps.filter((dump) => /funcionario|modal/i.test(dump.frame));
-    for (const dialog of dialogs) {
-      console.log(`[AIA][SofiaPlus] Diálogo del instructor: ${JSON.stringify(dialog)}`);
-    }
-    if (dialogs.length === 0) {
-      console.log(
-        `[AIA][SofiaPlus] Ningún frame corresponde al diálogo del instructor. `
-        + `Frames vistos: ${dumps.map((dump) => dump.frame).join(', ') || '(ninguno respondió)'}`,
-      );
-    }
-  }
+  // Paso 11: se selecciona la fila del instructor sin invocar el manejador roto del
+  // portal (`enviarParametro` falla en Electron porque su `window.opener` no existe).
+  void showStepBanner(window, 11, '🖱️ Seleccionando instructor');
+  await booleanScript(window, `(${clickInstructorResultLink.toString()})()`, 'No se encontró el enlace de selección del instructor en la tabla.');
 }
+

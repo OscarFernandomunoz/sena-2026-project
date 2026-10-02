@@ -4,7 +4,10 @@ import { patchSofiaPageGuards } from './page-guards.js';
 import { ACTION_DELAY_MS, wait } from './timing.js';
 import type { ClickPoint } from '../types.js';
 
-const DEMO_MODE = true;
+// En `true` los pasos que dependen de un clic por coordenadas solo dibujan un marcador
+// visual donde se haría clic, sin pulsarlo. Debe estar en `false` para que el flujo
+// recorra el portal de principio a fin.
+const DEMO_MODE = false;
 
 // Simula un movimiento y clic del mouse en la posición detectada en la pantalla del navegador.
 function clickAtPoint(window: BrowserWindow, point: ClickPoint): void {
@@ -19,6 +22,7 @@ async function showClickMarker(
   point: ClickPoint,
   label: string,
   color = '#ff3b30',
+  demo = true,
 ): Promise<void> {
   const script = `
     (() => {
@@ -116,7 +120,12 @@ async function showClickMarker(
       try { await frame.executeJavaScript(script); } catch { /* ignore */ }
     }
   }
-  console.log(`[AIA][SofiaPlus] Modo demostración: no se ejecutó el clic; posición marcada (${point.x.toFixed(1)}, ${point.y.toFixed(1)}): ${label}`);
+  console.log(`[AIA][SofiaPlus] ${demo ? 'Modo demostración: no se ejecutó el clic; ' : 'Clic resaltado; '}posición (${point.x.toFixed(1)}, ${point.y.toFixed(1)}): ${label}`);
+}
+
+// Solo resalta con la esfera un punto de la página, sin ejecutar ningún clic.
+export async function markClickPoint(window: BrowserWindow, point: ClickPoint, label: string): Promise<void> {
+  await showClickMarker(window, point, label, '#ff3b30', false);
 }
 
 // Ejecuta una acción basada en un script que debe devolver una posición y luego hace clic en esa coordenada.
@@ -136,6 +145,10 @@ export async function clickScript(
   if (DEMO_MODE) {
     await showClickMarker(window, point, errorMessage.replace('No se encontró ', ''));
   } else {
+    // Siempre se resalta con la esfera dónde cae el clic real, para que el usuario vea
+    // en pantalla cada interacción del flujo.
+    await showClickMarker(window, point, errorMessage.replace('No se encontró ', ''), '#ff3b30', false);
+    await wait(600);
     clickAtPoint(window, point);
   }
 }

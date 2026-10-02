@@ -234,9 +234,11 @@ Conviene ser explícito sobre el punto en que está el proyecto:
 - **`DEMO_MODE` está en `true`.** Los pasos que dependen de un clic por coordenadas dibujan un
   marcador visual en lugar de hacer clic. Hay que ponerlo en `false` para que el flujo continúe
   de principio a fin.
-- **El paso 11 no está verificado de extremo a extremo.** Los pasos 1 a 10 se ejecutan y se
-  registran correctamente; la selección final del instructor todavía no se ha confirmado
-  contra el portal en una ejecución completa.
+- **El clic final sobre el instructor es manual.** El flujo automatizado termina en el paso 10, con
+  la consulta enviada y la tabla de resultados visible en la ventana del portal. El enlace para
+  abrir la ficha del instructor **no** se pulsa desde la app: su manejador inline `enviarParametro`
+  (sofiaPopUp.js:27) depende de `window.opener`, que Electron no define, y sin ese contexto el
+  portal aborta. Ese clic queda a cargo del usuario.
 - **Sin integración continua.** No hay workflows de GitHub Actions; la verificación depende de
   ejecutar `npm run build` antes de publicar.
 - **El portal puede cambiar.** Los selectores y el flujo dependen de la estructura del DOM de
