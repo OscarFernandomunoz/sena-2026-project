@@ -31,8 +31,7 @@ src/
 │   │           ├── instructor-picker.ts  # Apertura del diálogo de instructor
 │   │           ├── identification-type.ts# Tipo de identificación (cédula)
 │   │           ├── identification-field.ts # Campo del número de identificación
-│   │           ├── search-button.ts      # Input "Consultar" del instructor
-│   │           └── result-link.ts        # Enlace del instructor y popup
+│   │           └── search-button.ts      # Input "Consultar" del instructor
 │   └── windows/
 │       ├── appearance.ts                 # Opciones nativas y ciclo de la barra de título
 │       ├── palette.ts                    # Colores de la barra por tema

@@ -4,6 +4,10 @@ import { registerRemoteWindow } from './windows/appearance.js';
 import { createMainWindow } from './windows/manager.js';
 
 app.commandLine.appendSwitch('ignore-certificate-errors');
+// El portal de SofiaPlus usa HTTP y no tiene CSP seguro; sin estos switches Electron
+// inunda la consola con advertencias de recursos inseguros y webSecurity deshabilitado.
+app.commandLine.appendSwitch('disable-web-security');
+app.commandLine.appendSwitch('allow-running-insecure-content');
 
 app.on('browser-window-created', (_event, window) => {
   const registerIfRemote = (): void => {

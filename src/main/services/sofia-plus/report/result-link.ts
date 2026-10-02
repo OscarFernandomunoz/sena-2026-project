@@ -122,6 +122,17 @@ export function clickInstructorResultLink(): boolean {
     for (const form of forms) candidates.push({ owner: candidate, form });
   }
   console.log(`[Reporte] Ventanas alcanzables: ${windows.length}; formularios: ${candidates.length}.`);
+  candidates.forEach((cand, i) => {
+    try {
+      const elements = Array.from(cand.form.elements).slice(0, 20).map((el) => {
+        const element = el as HTMLInputElement;
+        return element.name || element.id || '';
+      });
+      console.log(`[Reporte] Form[${i}] name="${cand.form.name}" id="${cand.form.id}" elements=${JSON.stringify(elements)}`);
+    } catch {
+      console.log(`[Reporte] Form[${i}] no accesible`);
+    }
+  });
 
   // El portal marca el formulario con un hidden `valorCampo` = "formulario:campo".
   let fieldName = '';
@@ -144,7 +155,28 @@ export function clickInstructorResultLink(): boolean {
     }
   }
 
-  if (!(target instanceof HTMLFormElement) || !fieldName) {
+  // Fallback conocido: el formulario final de SofiaPlus guarda el dato del instructor en
+  // un input con nombre "instructor" y sus hermanos `hi_instructor` / `hi_tx_instructor`.
+  if (!target) {
+    for (const entry of candidates) {
+      try {
+        const found = Array.from(entry.form.elements).find((el) => {
+          const input = el as HTMLInputElement;
+          return input.name === 'instructor' || input.id.endsWith(':instructor');
+        }) as HTMLInputElement | undefined;
+        if (found) {
+          target = entry.form;
+          fieldName = found.name || found.id;
+          console.log(`[Reporte] Formulario destino identificado por campo "${found.id}"/"${found.name}".`);
+          break;
+        }
+      } catch {
+        // No se pudo leer ese formulario.
+      }
+    }
+  }
+
+  if (!target || !fieldName) {
     console.warn('[Reporte] No se encontró el formulario destino; se reintentará en el siguiente intento.');
     return false;
   }

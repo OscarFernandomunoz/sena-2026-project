@@ -32,14 +32,18 @@ export {
   selectCurriculumOption,
 } from ${JSON.stringify(resolve(root, 'src/main/services/sofia-plus/navigation.ts'))};
 export {
-  clickInstructorResultLink,
   clickInstructorSearchInput,
   fillInstructorIdentification,
   fillReportDates,
   findInstructorPicker,
-  inspectInstructorDialog,
+  findInstructorPickerPoint,
+  findInstructorRowSelect,
+  findInstructorSearchPoint,
+  markIdentificationTypeSelect,
+  selectInstructorRow,
   openIdentificationTypeSelect,
   selectCitizenshipId,
+  clickInstructorResultLink,
 } from ${JSON.stringify(resolve(root, 'src/main/services/sofia-plus/report/index.ts'))};
 `);
 
@@ -67,12 +71,15 @@ const NAMES = [
   'findInstructorTimeOption',
   'fillReportDates',
   'findInstructorPicker',
+  'findInstructorPickerPoint',
   'openIdentificationTypeSelect',
   'selectCitizenshipId',
   'fillInstructorIdentification',
   'clickInstructorSearchInput',
-  'clickInstructorResultLink',
-  'inspectInstructorDialog',
+  'findInstructorRowSelect',
+  'selectInstructorRow',
+  'findInstructorSearchPoint',
+  'markIdentificationTypeSelect',
 ];
 
 // Proceso node plano: devuelve el texto EXACTO que se inyectará en la página.
