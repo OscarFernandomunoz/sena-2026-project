@@ -56,7 +56,7 @@ del portal, espera a que el elemento correspondiente esté disponible y actúa s
 | 8   | Selector de instructor             | Abre el diálogo de búsqueda                           |
 | 9   | Tipo de identificación             | Selecciona _Cédula de ciudadanía_ y escribe el número |
 | 10  | Botón Consultar                    | Pulsa el `input[type=submit]` del diálogo             |
-| 11  | Enlace del instructor              | Selecciona el registro y confirma la consulta         |
+| 11  | Enlace del instructor              | Selecciona el registro con `clickInstructorResultLink` |
 
 Un banner de progreso se inyecta en la propia página del portal para que el usuario vea en qué
 paso va, y toda la salida de `console.log` de la página se reenvía a la terminal de la app con
@@ -231,16 +231,14 @@ de fallar en producción.
 
 Conviene ser explícito sobre el punto en que está el proyecto:
 
-- **`DEMO_MODE` está en `true`.** Los pasos que dependen de un clic por coordenadas dibujan un
-  marcador visual en lugar de hacer clic. Hay que ponerlo en `false` para que el flujo continúe
-  de principio a fin.
-- **El clic final sobre el instructor es manual.** El flujo automatizado termina en el paso 10, con
-  la consulta enviada y la tabla de resultados visible en la ventana del portal. El enlace para
-  abrir la ficha del instructor **no** se pulsa desde la app: su manejador inline `enviarParametro`
-  (sofiaPopUp.js:27) depende de `window.opener`, que Electron no define, y sin ese contexto el
-  portal aborta. Ese clic queda a cargo del usuario.
-- **Sin integración continua.** No hay workflows de GitHub Actions; la verificación depende de
-  ejecutar `npm run build` antes de publicar.
+- **Paso 11 resuelto con `clickInstructorResultLink`.** El antiguo clic DOM sobre `cmdlnkShow` fallaba
+  en Electron porque el manejador del portal (`enviarParametro`) depende de `window.opener`, que en
+  la modal iframe no está definido. Ahora la selección se realiza escribiendo los valores del
+  instructor desde ese helper y enviando el formulario, sin llamar al `onclick` roto de
+  `sofiaPopUp.js`.
+- **`DEMO_MODE` debe estar en `false`.** Si está en `true`, solo se dibuja el marcador visual del
+  clic pero no se ejecuta realmente.
+- **Sin integración continua.** No hay workflows de GitHub Actions; la verificación depende de ejecutar `npm run build` antes de publicar.
 - **El portal puede cambiar.** Los selectores y el flujo dependen de la estructura del DOM de
   SofiaPlus. Cualquier cambio en el portal puede requerir ajustar `report/` y `navigation.ts`.
 - **`app.commandLine.appendSwitch('ignore-certificate-errors')`** está activo en el proceso
