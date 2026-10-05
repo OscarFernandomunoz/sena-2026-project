@@ -41,9 +41,18 @@ export async function fillInstructorIdentification(identification: string): Prom
     console.log(`[Reporte] Campo ${index}: id="${inp.id}", name="${inp.name}", placeholder="${inp.placeholder || ''}", visible=${inp.getClientRects().length > 0}`);
   });
 
+  const normalize = (value: string): string => value.trim().toLocaleLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  // Búsqueda por id/name normalizados: el prefijo JSF cambia en cada página
+  // (j_id_jsp_xxxx_yy:inputIdentificacion) y pueden variar acentos o mayúsculas.
+  const byNormalizedId = allInputs.find((inp) => normalize(inp.id).includes('inputidentificaci')
+    || normalize(inp.name).includes('inputidentificaci')) ?? null;
+
   // Intentar encontrar por diferentes criterios
   // 1. Por ID específico (prioridad más alta)
-  let input: HTMLInputElement | null = document.querySelector<HTMLInputElement>('input[id$="inputIdentificacion"]')
+  let input: HTMLInputElement | null = byNormalizedId
+    ?? document.querySelector<HTMLInputElement>('input[id$="inputIdentificacion"]')
     ?? document.querySelector<HTMLInputElement>('input[id*="inputIdentificacion"]')
     ?? document.querySelector<HTMLInputElement>('input[id*="Identificacion"]')
     ?? document.querySelector<HTMLInputElement>('input[id*="identificacion"]');
@@ -87,7 +96,10 @@ export async function fillInstructorIdentification(identification: string): Prom
     console.log('[Reporte] Campos visibles disponibles, sin campos de fecha:', visibleInputs.length);
 
     // Buscar el input que está cerca del select de tipo de identificación
-    const idTypeSelect = document.querySelector<HTMLSelectElement>('select[id$=":inputTipoIdentificacion"]')
+    const idTypeSelect = Array.from(document.querySelectorAll<HTMLSelectElement>('select'))
+      .find((select) => normalize(select.id).includes('tipoidentificacio')
+        || normalize(select.name).includes('tipoidentificacio'))
+      ?? document.querySelector<HTMLSelectElement>('select[id$=":inputTipoIdentificacion"]')
       ?? document.querySelector<HTMLSelectElement>('select[id*="inputTipoIdentificacion"]');
 
     if (idTypeSelect && visibleInputs.length > 0) {

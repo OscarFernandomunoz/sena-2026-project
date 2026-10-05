@@ -2,16 +2,18 @@ import type { ClickPoint } from './types.js';
 
 // Este módulo localiza los menús y selecciones de SofiaPlus para avanzar por el flujo de navegación guiado.
 
-function findVisibleText(selector: string, text: string): HTMLElement | null {
-  const target = text.trim().toLocaleLowerCase();
-  return Array.from(document.querySelectorAll<HTMLElement>(selector)).find((element) => {
-    const value = element.textContent?.trim().toLocaleLowerCase();
-    return value === target && element.getClientRects().length > 0;
-  }) ?? null;
-}
+// (Sin helpers de módulo en este archivo: las funciones exportadas se serializan con
+// `.toString()` y se ejecutan dentro de la página de SofiaPlus, donde esos helpers no existen.)
 
 // Busca la opción de Aspirante dentro de los selectores o controles visibles del portal.
 export async function openAspiranteOptions(): Promise<ClickPoint | null> {
+  const findVisibleText = (selector: string, text: string): HTMLElement | null => {
+    const target = text.trim().toLocaleLowerCase();
+    return Array.from(document.querySelectorAll<HTMLElement>(selector)).find((element) => {
+      const value = element.textContent?.trim().toLocaleLowerCase();
+      return value === target && element.getClientRects().length > 0;
+    }) ?? null;
+  };
   const pointFor = (element: HTMLElement): ClickPoint => {
     const rect = element.getBoundingClientRect();
     let x = rect.left + (rect.width / 2);
@@ -56,8 +58,8 @@ export async function selectCurriculumOption(): Promise<boolean> {
   return Boolean(control);
 }
 
-// Encuentra la opción de Gestión de Tiempos y la activa para continuar con el módulo consultado.
-export async function findTimeManagementOption(): Promise<ClickPoint | null> {
+// Encuentra la opción de Gestión de Ambientes y la activa para continuar con el módulo consultado.
+export async function findEnvironmentManagementOption(): Promise<ClickPoint | null> {
   const pointFor = (element: HTMLElement): ClickPoint => {
     const rect = element.getBoundingClientRect();
     let x = rect.left + (rect.width / 2);
@@ -73,7 +75,7 @@ export async function findTimeManagementOption(): Promise<ClickPoint | null> {
   };
   const control = Array.from(document.querySelectorAll<HTMLElement>(
     'a[href], a[onclick], button, [role="menuitem"], [role="option"], li',
-  )).find((element) => element.textContent?.trim().toLocaleLowerCase() === 'gestión de tiempos'
+  )).find((element) => element.textContent?.trim().toLocaleLowerCase() === 'gestión de ambientes'
     && element.getClientRects().length > 0);
   if (!control) return null;
   const eventOptions = { bubbles: true, cancelable: true, view: window, button: 0, detail: 1 };
@@ -84,15 +86,15 @@ export async function findTimeManagementOption(): Promise<ClickPoint | null> {
   return pointFor(control.matches('a, button') ? control : control.querySelector<HTMLElement>('a[href], a[onclick], button') ?? control);
 }
 
-// Abre la opción de Consultar Consolidado de Tiempos dentro del menú de gestión.
-export async function findConsolidatedTimeOption(): Promise<ClickPoint | null> {
+// Abre la opción de Gestion Ambientes dentro del menú de gestión.
+export async function findAmbientesOption(): Promise<ClickPoint | null> {
   const pointFor = (element: HTMLElement): ClickPoint => {
     const rect = element.getBoundingClientRect();
     return { x: rect.left + (rect.width / 2), y: rect.top + (rect.height / 2) };
   };
   const control = Array.from(document.querySelectorAll<HTMLElement>(
     'a[href], a[onclick], button, [role="menuitem"], [role="option"], li',
-  )).find((element) => element.textContent?.trim().toLocaleLowerCase() === 'consultar consolidado de tiempos'
+  )).find((element) => element.textContent?.trim().toLocaleLowerCase() === 'gestion ambientes'
     && element.getClientRects().length > 0);
   if (!control) return null;
   const clickable = control.matches('a, button')
@@ -102,15 +104,55 @@ export async function findConsolidatedTimeOption(): Promise<ClickPoint | null> {
   return pointFor(clickable);
 }
 
-// Abre la opción de Consultar Registro de Tiempo de Instructores para entrar al formulario final.
-export async function findInstructorTimeOption(): Promise<ClickPoint | null> {
+// Abre la opción de Consulta de Tiempos de Instructor por Actividad de Formación.
+export async function findInstructorActivityTimeOption(): Promise<ClickPoint | null> {
   const pointFor = (element: HTMLElement): ClickPoint => {
     const rect = element.getBoundingClientRect();
     return { x: rect.left + (rect.width / 2), y: rect.top + (rect.height / 2) };
   };
   const control = Array.from(document.querySelectorAll<HTMLElement>(
     'a[href], a[onclick], button, [role="menuitem"], [role="option"], li',
-  )).find((element) => element.textContent?.trim().toLocaleLowerCase() === 'consultar registro de tiempo de instructores'
+  )).find((element) => {
+    const text = (element.textContent ?? '').replace(/\s+/g, ' ').trim().toLocaleLowerCase();
+    return text === 'consulta de tiempos de instructor por actividad de formación'
+      && element.getClientRects().length > 0;
+  });
+  if (!control) return null;
+  const clickable = control.matches('a, button')
+    ? control
+    : control.querySelector<HTMLElement>('a[href], a[onclick], button') ?? control;
+  clickable.click();
+  return pointFor(clickable);
+}
+
+// Abre la ventana de selección de programa de formación (lupa del campo Programa de Formación).
+export async function findProgramLookupButton(): Promise<ClickPoint | null> {
+  const pointFor = (element: HTMLElement): ClickPoint => {
+    const rect = element.getBoundingClientRect();
+    return { x: rect.left + (rect.width / 2), y: rect.top + (rect.height / 2) };
+  };
+  const normalize = (value: string): string => value.trim().toLocaleLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const byNormalizedId = Array.from(document.querySelectorAll<HTMLElement>('[id], [name]'))
+    .find((element) => normalize(element.id).includes('programaformacionolk')
+      || normalize(element.getAttribute('name') ?? '').includes('programaformacionolk')) ?? null;
+  const picker = document.querySelector<HTMLElement>('[id$=":programaFormacionOLK"], [id$="programaFormacionOLK"]')
+    ?? byNormalizedId;
+  if (!(picker instanceof HTMLElement)) return null;
+  const clickable = picker.closest('a') ?? picker;
+  clickable.click();
+  return pointFor(clickable);
+}
+
+// Abre la opción de Reportes para continuar con el módulo consultado.
+export async function findReportsOption(): Promise<ClickPoint | null> {
+  const pointFor = (element: HTMLElement): ClickPoint => {
+    const rect = element.getBoundingClientRect();
+    return { x: rect.left + (rect.width / 2), y: rect.top + (rect.height / 2) };
+  };
+  const control = Array.from(document.querySelectorAll<HTMLElement>(
+    'a[href], a[onclick], button, [role="menuitem"], [role="option"], li',
+  )).find((element) => element.textContent?.trim().toLocaleLowerCase() === 'reportes'
     && element.getClientRects().length > 0);
   if (!control) return null;
   const clickable = control.matches('a, button')

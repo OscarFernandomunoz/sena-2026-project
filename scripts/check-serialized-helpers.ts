@@ -25,9 +25,11 @@ const entry = resolve(dir, 'entry.ts');
 writeFileSync(entry, `
 export { fillSofiaInputs } from ${JSON.stringify(resolve(root, 'src/main/services/sofia-plus/login.ts'))};
 export {
-  findConsolidatedTimeOption,
-  findInstructorTimeOption,
-  findTimeManagementOption,
+  findAmbientesOption,
+  findEnvironmentManagementOption,
+  findInstructorActivityTimeOption,
+  findProgramLookupButton,
+  findReportsOption,
   openAspiranteOptions,
   selectCurriculumOption,
 } from ${JSON.stringify(resolve(root, 'src/main/services/sofia-plus/navigation.ts'))};
@@ -66,9 +68,11 @@ const NAMES = [
   'fillSofiaInputs',
   'openAspiranteOptions',
   'selectCurriculumOption',
-  'findTimeManagementOption',
-  'findConsolidatedTimeOption',
-  'findInstructorTimeOption',
+  'findEnvironmentManagementOption',
+  'findAmbientesOption',
+  'findReportsOption',
+  'findInstructorActivityTimeOption',
+  'findProgramLookupButton',
   'fillReportDates',
   'findInstructorPicker',
   'findInstructorPickerPoint',
@@ -130,7 +134,13 @@ for (const name of NAMES) {
   }
   try {
     // Se compila el texto EXACTO que sofia-plus/index.ts inyecta en la pagina.
-    vm.runInContext(`(${source})()`, sandbox, { filename: `${name}.injected.js` });
+    // Si la función es async hay que esperar la promesa: un ReferenceError interno
+    // no se propaga síncronamente sino como rechazo, y sin el await pasaría
+    // desapercibido (era la causa de que el check no detectara helpers de módulo).
+    const result = vm.runInContext(`(${source})()`, sandbox, { filename: `${name}.injected.js` });
+    if (result && typeof (result as PromiseLike<unknown>).then === 'function') {
+      await result;
+    }
     console.log(`OK     ${name}  (${source.length} chars inyectados)`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

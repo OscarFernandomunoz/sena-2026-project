@@ -9,8 +9,21 @@ import type { ClickPoint } from '../types.js';
 // Se hace clic sobre el select del diálogo de instructor para abrirlo (solo coordenadas,
 // sin marker; el marker visible lo añade markIdentificationTypeSelect).
 export async function openIdentificationTypeSelect(): Promise<ClickPoint | null> {
-  const select = document.querySelector<HTMLSelectElement>('select[id$=":inputTipoIdentificacion"]')
-    ?? document.querySelector<HTMLSelectElement>('select[id*="inputTipoIdentificacion"]');
+  // ⚠️ Helper duplicado a propósito: las funciones de este archivo se serializan con
+  // `.toString()` y se ejecutan DENTRO de la página de SofiaPlus, así que no pueden
+  // llamar a helpers de módulo (no existirían en la página → ReferenceError).
+  const normalizeId = (value: string): string => value.trim().toLocaleLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const findIdentificationTypeSelect = (): HTMLSelectElement | null => {
+    const byIdOrName = Array.from(document.querySelectorAll<HTMLSelectElement>('select'))
+      .find((candidate) => normalizeId(candidate.id).includes('tipoidentificacio')
+        || normalizeId(candidate.name).includes('tipoidentificacio'));
+    if (byIdOrName) return byIdOrName;
+    return document.querySelector<HTMLSelectElement>('select[id$=":inputTipoIdentificacion"]')
+      ?? document.querySelector<HTMLSelectElement>('select[id*="inputTipoIdentificacion"]')
+      ?? null;
+  };
+  const select = findIdentificationTypeSelect();
   if (!(select instanceof HTMLSelectElement)) return null;
   select.focus();
   const rect = select.getBoundingClientRect();
@@ -27,14 +40,27 @@ export async function openIdentificationTypeSelect(): Promise<ClickPoint | null>
   return { x, y };
 }
 
-// Solo UBICA el select de tipo de identificación y dibuja la esfera SOLO en el iframe que lo
-// contiene (coordenadas LOCALES de ese documento), sin ejecutar ningún clic. Devulve true
-// cuando lo encuentra para que el flujo pueda seguir con la asignación de la opción.
 export async function markIdentificationTypeSelect(): Promise<boolean> {
-  const select = document.querySelector<HTMLSelectElement>('select[id$=":inputTipoIdentificacion"]')
-    ?? document.querySelector<HTMLSelectElement>('select[id*="inputTipoIdentificacion"]');
+  // ⚠️ Helper duplicado a propósito: esta función se serializa con `.toString()` y se
+  // ejecuta DENTRO de la página de SofiaPlus; no puede usar helpers de módulo.
+  const normalizeId = (value: string): string => value.trim().toLocaleLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const findIdentificationTypeSelect = (): HTMLSelectElement | null => {
+    const byIdOrName = Array.from(document.querySelectorAll<HTMLSelectElement>('select'))
+      .find((candidate) => normalizeId(candidate.id).includes('tipoidentificacio')
+        || normalizeId(candidate.name).includes('tipoidentificacio'));
+    if (byIdOrName) return byIdOrName;
+    return document.querySelector<HTMLSelectElement>('select[id$=":inputTipoIdentificacion"]')
+      ?? document.querySelector<HTMLSelectElement>('select[id*="inputTipoIdentificacion"]')
+      ?? null;
+  };
+  const select = findIdentificationTypeSelect();
   if (!(select instanceof HTMLSelectElement)) {
     console.error('[Reporte] No se encontró el selector de tipo de identificación para marcar.');
+    // Diagnóstico: lista todos los selects visibles para ver por qué no enganchó.
+    document.querySelectorAll<HTMLSelectElement>('select').forEach((candidate) => {
+      console.log(`[Reporte] Select presente: id="${candidate.id}", name="${candidate.name}", visible=${candidate.getClientRects().length > 0}`);
+    });
     return false;
   }
   const rect = select.getBoundingClientRect();
@@ -76,7 +102,20 @@ export async function selectCitizenshipId(): Promise<boolean> {
   const esTipoIdentificacion = (candidate: HTMLSelectElement): boolean => Array.from(candidate.options)
     .some((option) => targets.includes(normalize(option.textContent ?? '')));
 
-  const select = document.querySelector<HTMLSelectElement>('select[id$=":inputTipoIdentificacion"]')
+  // ⚠️ Helper duplicado a propósito: esta función se serializa con `.toString()` y se
+  // ejecuta DENTRO de la página de SofiaPlus; no puede usar helpers de módulo.
+  const findIdentificationTypeSelect = (): HTMLSelectElement | null => {
+    const byIdOrName = Array.from(document.querySelectorAll<HTMLSelectElement>('select'))
+      .find((candidate) => normalize(candidate.id).includes('tipoidentificacio')
+        || normalize(candidate.name).includes('tipoidentificacio'));
+    if (byIdOrName) return byIdOrName;
+    return document.querySelector<HTMLSelectElement>('select[id$=":inputTipoIdentificacion"]')
+      ?? document.querySelector<HTMLSelectElement>('select[id*="inputTipoIdentificacion"]')
+      ?? null;
+  };
+
+  const select = findIdentificationTypeSelect()
+    ?? document.querySelector<HTMLSelectElement>('select[id$=":inputTipoIdentificacion"]')
     ?? document.querySelector<HTMLSelectElement>('select[id*="inputTipoIdentificacion"]')
     ?? Array.from(document.querySelectorAll<HTMLSelectElement>('select')).find(esTipoIdentificacion);
   if (!(select instanceof HTMLSelectElement)) {
@@ -108,6 +147,13 @@ export async function selectCitizenshipId(): Promise<boolean> {
     return false;
   }
   console.log(`[Reporte] Opción de cédula seleccionada (índice ${optionIndex}): "${option.textContent?.trim() ?? ''}".`);
+  // Abrir el desplegable como haría un usuario (antes de fijar el valor): sin esto el
+  // <select> no muestra visualmente sus opciones y JSF puede no registrar el cambio.
+  select.focus();
+  const eventOptions = { bubbles: true, cancelable: true, view: window, button: 0, detail: 1 };
+  select.dispatchEvent(new MouseEvent('mousedown', eventOptions));
+  select.dispatchEvent(new MouseEvent('mouseup', eventOptions));
+  select.click();
   select.selectedIndex = optionIndex;
   select.value = option.value;
   select.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
