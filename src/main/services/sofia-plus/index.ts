@@ -9,7 +9,7 @@ import {
   openAspiranteOptions,
   selectCurriculumOption,
 } from './navigation.js';
-import { clickInstructorResultLink, clickInstructorSearchInput, fillInstructorIdentification, fillReportDates, markIdentificationTypeSelect, selectCitizenshipId } from './report/index.js';
+import { clickInstructorResultLink, clickInstructorSearchInput, fillInstructorIdentification, fillReportDates, markIdentificationTypeSelect, selectCitizenshipId, selectLearningResultsOption, submitInstructorTimesReport } from './report/index.js';
 import type { SofiaCredentials } from './types.js';
 import { showStepBanner } from './flow/step-banner.js';
 import { loadWindow } from './flow/window-loader.js';
@@ -44,21 +44,27 @@ export async function openSofiaPlus(credentials: SofiaCredentials): Promise<void
   void showStepBanner(window, 8, '📅 Rellenando fechas del reporte');
   await booleanScript(window, `(${fillReportDates.toString()})(${JSON.stringify({ startDate: credentials.startDate, endDate: credentials.endDate })})`, 'No se encontraron los campos de fechas del informe.');
 
-  void showStepBanner(window, 9, '📚 Abriendo selector de programa de formación');
+  void showStepBanner(window, 9, '📥 Selección Actividad de Formación → RESULTADOS DE APRENDIZAJE');
+  await booleanScript(window, `(${selectLearningResultsOption.toString()})()`, 'No se encontró la opción RESULTADOS DE APRENDIZAJE de Actividad de Formación.');
+
+  void showStepBanner(window, 10, '📚 Abriendo selector de programa de formación');
   await clickScript(window, `(${findProgramLookupButton.toString()})()`, 'No se encontró el botón de selección de programa de formación.');
 
-  void showStepBanner(window, 10, '🆔 Seleccionando Tipo de Identificación → Cédula de ciudadanía');
+  void showStepBanner(window, 11, '🆔 Seleccionando Tipo de Identificación → Cédula de ciudadanía');
   await booleanScript(window, `(${markIdentificationTypeSelect.toString()})()`, 'No se encontró el campo Tipo de Identificación.');
   await wait(600);
   await booleanScript(window, `(${selectCitizenshipId.toString()})()`, 'No se encontró la opción Cédula de ciudadanía.');
 
-  void showStepBanner(window, 11, '🪪 Escribiendo la identificación del instructor');
+  void showStepBanner(window, 12, '🪪 Escribiendo la identificación del instructor');
   await booleanScript(window, `(${fillInstructorIdentification.toString()})(${JSON.stringify(credentials.identification)})`, 'No se encontró el campo de identificación del instructor.');
 
-  void showStepBanner(window, 12, '🔍 Pulsando Consultar');
+  void showStepBanner(window, 13, '🔍 Pulsando Consultar');
   await booleanScript(window, `(${clickInstructorSearchInput.toString()})()`, 'No se encontró o no se pudo pulsar el botón Consultar.');
 
-  void showStepBanner(window, 13, '👨‍🏫 Seleccionando el instructor del resultado');
+  void showStepBanner(window, 14, '👨‍🏫 Seleccionando el instructor del resultado');
   await booleanScript(window, `(${clickInstructorResultLink.toString()})()`, 'No se encontró el enlace del instructor en los resultados.');
+
+  void showStepBanner(window, 15, '✅ Consultar del reporte');
+  await booleanScript(window, `(${submitInstructorTimesReport.toString()})()`, 'No se encontró el botón Consultar del reporte de tiempos.');
 }
 

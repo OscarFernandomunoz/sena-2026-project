@@ -10,3 +10,5 @@ export { fillInstructorIdentification } from './identification-field.js';
 export { clickInstructorSearchInput, findInstructorSearchPoint } from './search-button.js';
 export { findInstructorRowSelect, selectInstructorRow } from './instructor-row-select.js';
 export { clickInstructorResultLink } from './result-link.js';
+export { selectLearningResultsOption } from './learning-results-option.js';
+export { submitInstructorTimesReport } from './form-submit-button.js';
