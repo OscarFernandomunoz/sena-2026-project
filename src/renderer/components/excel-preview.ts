@@ -8,7 +8,7 @@ const REQUIRED_COLUMN_NAMES = [REQUIRED_COLUMN_NAME, ALTERNATIVE_COLUMN_NAME];
 const REQUIRED_COLUMN_LABEL = `${REQUIRED_COLUMN_NAME} o ${ALTERNATIVE_COLUMN_NAME}`;
 const DROPZONE_HINT = `Arrastra y suelta tu archivo de nómina aquí (.xls, .xlsx). Obligatorio. Debe incluir ${REQUIRED_COLUMN_LABEL}.`;
 
-type FileElements = Pick<AppElements, 'dropzone' | 'fileInput' | 'dropzoneText' | 'excelPreview' | 'statusMessage'>;
+export type FileElements = Pick<AppElements, 'dropzone' | 'fileInput' | 'dropzoneText' | 'excelPreview' | 'statusMessage'>;
 
 export function initFileHandling(elements: FileElements, state: FileUploadState): void {
   elements.dropzone.addEventListener('click', () => elements.fileInput.click());
@@ -33,10 +33,10 @@ function validateAndSetFile(file: File, elements: FileElements, state: FileUploa
   if (extension !== 'xls' && extension !== 'xlsx') { alert('Solo se permiten archivos Excel en formato .xls o .xlsx'); return; }
   elements.dropzoneText.innerHTML = `Archivo seleccionado: <strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)`;
   elements.statusMessage.textContent = `Archivo "${file.name}" cargado. Validando ${REQUIRED_COLUMN_NAME}...`;
-  void previewExcel(file, elements, state);
+  void refreshExcelPreview(file, elements, state);
 }
 
-async function previewExcel(file: File, elements: FileElements, state: FileUploadState): Promise<void> {
+export async function refreshExcelPreview(file: File, elements: FileElements, state: FileUploadState): Promise<void> {
   elements.excelPreview.replaceChildren();
   elements.excelPreview.textContent = 'Leyendo información del Excel...';
   try {
@@ -54,9 +54,9 @@ async function previewExcel(file: File, elements: FileElements, state: FileUploa
       rejectFile(elements, state, validationResults.find(Boolean) ?? `Ninguna hoja contiene ${REQUIRED_COLUMN_LABEL} con datos válidos.`);
       return;
     }
-    const firstIdentification = sheets
-      .map(({ rows }) => getFirstIdentification(rows))
-      .find((identification): identification is string => Boolean(identification)) ?? null;
+    const identifications = [...new Set(sheets
+      .flatMap(({ rows }) => getAllIdentifications(rows)))];
+    const firstIdentification = identifications[0] ?? null;
     const fragment = document.createDocumentFragment();
     sheets.forEach(({ sheetName, rows }) => {
       const section = document.createElement('section');
@@ -79,8 +79,9 @@ async function previewExcel(file: File, elements: FileElements, state: FileUploa
     });
     state.file = file;
     state.firstIdentification = firstIdentification;
+    state.identifications = identifications;
     if (firstIdentification) {
-      elements.statusMessage.textContent = `Cédula instructor extraída del Excel: ${firstIdentification}. ${REQUIRED_COLUMN_LABEL} presente.`;
+      elements.statusMessage.textContent = `${identifications.length} cédula(s) de instructores extraídas del Excel. ${REQUIRED_COLUMN_LABEL} presente.`;
     }
     elements.dropzone.classList.remove('dropzone-error');
     elements.dropzone.classList.add('dropzone-valid');
@@ -101,28 +102,30 @@ function validateRequiredColumn(rows: unknown[][], sheetName: string): string | 
   return null;
 }
 
-function findRequiredColumnIndex(rows: unknown[][]): { headerRowIndex: number; columnIndex: number } | null {
+export function findRequiredColumnIndex(rows: unknown[][]): { headerRowIndex: number; columnIndex: number } | null {
   for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
     const columnIndex = (rows[rowIndex] ?? []).findIndex((cell) => REQUIRED_COLUMN_NAMES.some((name) => (
-      name.toLocaleUpperCase() === String(cell ?? '').trim().toLocaleUpperCase()
+      name.toLocaleUpperCase() === String(cell ?? '').trim().replace(/\s+/g, ' ').toLocaleUpperCase()
     )));
     if (columnIndex !== -1) return { headerRowIndex: rowIndex, columnIndex };
   }
   return null;
 }
 
-function getFirstIdentification(rows: unknown[][]): string | null {
+function getAllIdentifications(rows: unknown[][]): string[] {
   const requiredColumn = findRequiredColumnIndex(rows);
-  if (!requiredColumn) return null;
-  const firstValue = rows.slice(requiredColumn.headerRowIndex + 1)
+  if (!requiredColumn) return [];
+  return rows.slice(requiredColumn.headerRowIndex + 1)
     .map((row) => String((row ?? [])[requiredColumn.columnIndex] ?? '').trim())
-    .find(Boolean);
-  return firstValue ?? null;
+    // Con encabezados de dos filas, la fila descriptiva ("Cédula", etc.) aparece
+    // justo debajo; una cédula real siempre tiene 6+ dígitos.
+    .filter((value) => value.replace(/\D/g, '').length >= 6);
 }
 
 function rejectFile(elements: FileElements, state: FileUploadState, message: string): void {
   state.file = null;
   state.firstIdentification = null;
+  state.identifications = [];
   elements.fileInput.value = '';
   elements.dropzone.classList.add('dropzone-error');
   elements.dropzoneText.textContent = DROPZONE_HINT;

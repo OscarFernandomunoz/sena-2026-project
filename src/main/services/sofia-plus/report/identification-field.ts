@@ -143,7 +143,7 @@ export async function fillInstructorIdentification(identification: string): Prom
   console.log('[Reporte] La identificación fue enviada al campo seleccionado.');
 
   // Pequeño delay para que se pueda ver visualmente el número antes de continuar
-  await new Promise(resolve => setTimeout(resolve, 1500));
+  await new Promise(resolve => setTimeout(resolve, 400));
 
   input.blur();
   const ok = input.value === identification || input.value === String(identification).replace(/\D/g, '');

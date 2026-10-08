@@ -12,7 +12,12 @@ export const electronAPI = {
     startDate: string;
     endDate: string;
     identification: string;
-  }): Promise<void> => ipcRenderer.invoke('sofia:open-and-fill', credentials),
+    identifications?: string[];
+  }): Promise<Array<{ identification: string; totalHours: string | null }>> => ipcRenderer.invoke('sofia:open-and-fill', credentials),
+
+  // Escribe las horas en el Excel con Excel real (COM), preservando diseño y filtros.
+  applyHoursToExcel: (payload: { data: ArrayBuffer; fileName: string; cedula: string; hours: string }): Promise<ArrayBuffer | null> =>
+    ipcRenderer.invoke('excel:apply-hours', payload),
 
   // Sincroniza el color del overlay nativo de Windows/Linux.
   setTitleBarTheme: (theme: TitleBarTheme): void => ipcRenderer.send('window:set-title-bar-theme', theme),

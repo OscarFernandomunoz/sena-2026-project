@@ -1,17 +1,29 @@
 import { BrowserWindow, ipcMain } from 'electron';
-import { openSofiaPlus, type SofiaCredentials } from '../services/sofia-plus/index.js';
+import { openSofiaPlus, type InstructorHours, type SofiaCredentials } from '../services/sofia-plus/index.js';
+import { applyHoursWithExcel, type ApplyHoursPayload } from '../services/excel/apply-hours.js';
 import { applyTitleBarTheme } from '../windows/appearance.js';
 
 // Registra los canales IPC que usa la app para comunicarse entre el renderer y el proceso principal.
 export function registerIpcHandlers(): void {
   try {
     // Ejecuta el flujo completo de login y manejo de SofiaPlus con las credenciales recibidas.
-    ipcMain.handle('sofia:open-and-fill', async (_event, credentials: SofiaCredentials): Promise<void> => {
+    ipcMain.handle('sofia:open-and-fill', async (_event, credentials: SofiaCredentials): Promise<InstructorHours[]> => {
       try {
-        await openSofiaPlus(credentials);
+        return await openSofiaPlus(credentials);
       } catch (error) {
         console.error('[AIA][SofiaPlus] No se pudo completar el flujo de automatización.', error);
         throw error;
+      }
+    });
+
+    // Escribe las horas en el Excel con Excel real (COM) preservando diseño y filtros.
+    ipcMain.handle('excel:apply-hours', async (_event, payload: ApplyHoursPayload): Promise<ArrayBuffer | null> => {
+      try {
+        const result = await applyHoursWithExcel(payload);
+        return result ? result.buffer.slice(result.byteOffset, result.byteOffset + result.byteLength) as ArrayBuffer : null;
+      } catch (error) {
+        console.error('[AIA][Excel] Error al aplicar horas con Excel COM.', error);
+        return null;
       }
     });
 

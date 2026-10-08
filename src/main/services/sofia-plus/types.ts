@@ -5,6 +5,14 @@ export interface SofiaCredentials {
   startDate: string;
   endDate: string;
   identification: string;
+  // Todas las cédulas del Excel; si está presente se consulta cada una.
+  identifications?: string[];
+}
+
+// Horas leídas de SofiaPlus para un instructor concreto.
+export interface InstructorHours {
+  identification: string;
+  totalHours: string | null;
 }
 
 // Representa una coordenada de pantalla usada para hacer clic en un elemento detectado por JS dentro del navegador.

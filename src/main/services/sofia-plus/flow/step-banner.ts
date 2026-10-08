@@ -2,7 +2,7 @@ import type { BrowserWindow } from 'electron';
 import { executeInFrames } from '../browser/index.js';
 import { TITLE_BAR_HEIGHT } from '../../../../shared/window.js';
 
-export const TOTAL_STEPS = 11;
+export const TOTAL_STEPS = 16;
 
 // Muestra el contador de progreso del flujo dentro de la página de SofiaPlus.
 export function showStepBanner(window: BrowserWindow, stepNumber: number, stepTitle: string): Promise<void> {

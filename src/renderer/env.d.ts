@@ -9,7 +9,12 @@ export interface IElectronAPI {
     startDate: string;
     endDate: string;
     identification: string;
-  }) => Promise<void>;
+    identifications?: string[];
+  }) => Promise<Array<{ identification: string; totalHours: string | null }>>;
+
+  // Aplica las horas al Excel con Excel real, conservando diseño y filtros.
+  // Devuelve null si Excel no está disponible (se puede usar el fallback).
+  applyHoursToExcel: (payload: { data: ArrayBuffer; fileName: string; cedula: string; hours: string }) => Promise<ArrayBuffer | null>;
 
   // Control de la ventana (TitleBar)
   titleBarPlatform: TitleBarPlatform;
