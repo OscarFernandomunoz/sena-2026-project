@@ -148,7 +148,7 @@ export async function clickScript(
     // Siempre se resalta con la esfera dónde cae el clic real, para que el usuario vea
     // en pantalla cada interacción del flujo.
     await showClickMarker(window, point, errorMessage.replace('No se encontró ', ''), '#ff3b30', false);
-    await wait(600);
+    await wait(300);
     clickAtPoint(window, point);
   }
 }

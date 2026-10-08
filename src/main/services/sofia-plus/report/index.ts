@@ -12,3 +12,4 @@ export { findInstructorRowSelect, selectInstructorRow } from './instructor-row-s
 export { clickInstructorResultLink } from './result-link.js';
 export { selectLearningResultsOption } from './learning-results-option.js';
 export { submitInstructorTimesReport } from './form-submit-button.js';
+export { readTotalHours } from './total-hours.js';

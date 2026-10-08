@@ -137,7 +137,7 @@ function initMouseLightEffect(): void {
 
 function initApp(): void {
   const elements = getElements();
-  const state: FileUploadState = { file: null, firstIdentification: null, isUploading: false };
+  const state: FileUploadState = { file: null, firstIdentification: null, identifications: [], isUploading: false };
 
   initTheme(elements);
   initTitleBar();
