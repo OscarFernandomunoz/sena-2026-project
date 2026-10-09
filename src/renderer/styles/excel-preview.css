@@ -234,6 +234,35 @@
   color: var(--text);
 }
 
+.excel-download-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 22px;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background-color 180ms var(--ease-smooth), box-shadow 180ms var(--ease-smooth), transform 180ms var(--ease-smooth);
+}
+
+.excel-download-btn:hover {
+  background: color-mix(in srgb, var(--accent) 85%, #000);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 25%, transparent);
+  transform: translateY(-1px);
+}
+
+.excel-download-btn:active {
+  transform: translateY(0);
+}
+
 .excel-preview td.excel-required-column {
   background: var(--required-column-bg);
   font-weight: 650;
