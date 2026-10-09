@@ -1,6 +1,6 @@
 import type { AppElements, FileUploadState } from '../types.js';
 import { writeHoursIntoExcel } from './excel-update/index.js';
-import { highlightRow } from './excel-preview.js';
+import { highlightRow, getVisibleIdentifications } from './excel-preview.js';
 import { colorHoursCellInPreview } from './excel-update/preview-color.js';
 
 function setSubmitState(button: HTMLButtonElement, state: 'idle' | 'loading' | 'success' | 'error'): void {
@@ -26,9 +26,10 @@ export function initSubmit(elements: Pick<AppElements, 'uploadButton' | 'statusM
       alert('Sube el archivo Excel de nómina antes de iniciar sesión.');
       return;
     }
-    if (state.identifications.length === 0) {
-      elements.statusMessage.textContent = 'No se encontró una cédula válida en la columna requerida del Excel.';
-      alert('No se encontraron cédulas válidas en el archivo Excel. Verifica la columna Columna 3 o "# DE DOCUMENTO" e intenta nuevamente.');
+    const visibleIdentifications = getVisibleIdentifications(elements);
+    if (visibleIdentifications.length === 0) {
+      elements.statusMessage.textContent = 'No hay cédulas visibles en la vista previa. Ajusta el filtro de búsqueda.';
+      alert('No hay cédulas visibles con el filtro actual. Ajusta o limpia el filtro para continuar.');
       return;
     }
     state.isUploading = true;
@@ -41,8 +42,8 @@ export function initSubmit(elements: Pick<AppElements, 'uploadButton' | 'statusM
         password: elements.inputPass.value,
         startDate: elements.inputStartDate.value,
         endDate: elements.inputEndDate.value,
-        identification: state.firstIdentification ?? '',
-        identifications: state.identifications,
+        identification: visibleIdentifications[0] ?? '',
+        identifications: visibleIdentifications,
       }, (identification, hours) => {
         state.currentIdentification = identification;
         highlightRow(elements, identification);

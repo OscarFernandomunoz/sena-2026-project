@@ -122,6 +122,27 @@ function getAllIdentifications(rows: unknown[][]): string[] {
     .filter((value) => value.replace(/\D/g, '').length >= 6);
 }
 
+// Recolecta las cédulas de las filas VISIBLES (no ocultas por el filtro de búsqueda).
+// Si no hay filtro activo, devuelve todas las cédulas.
+export function getVisibleIdentifications(elements: FileElements): string[] {
+  const tables = elements.excelPreview.querySelectorAll('table');
+  const visible: string[] = [];
+  tables.forEach((table) => {
+    const requiredIndex = findRequiredColumnIndex(
+      Array.from(table.tBodies[0]?.rows ?? []).map((row) => (
+        Array.from(row.cells, (cell) => cell.textContent ?? '')
+      )),
+    )?.columnIndex;
+    if (requiredIndex === undefined) return;
+    table.tBodies[0]?.querySelectorAll('tr:not([hidden])').forEach((row) => {
+      const cell = row.cells[requiredIndex];
+      const value = (cell?.textContent ?? '').trim();
+      if (value.replace(/\D/g, '').length >= 6) visible.push(value);
+    });
+  });
+  return [...new Set(visible)];
+}
+
 // Resalta la fila que contiene la cédula indicada.
 export function highlightRow(elements: FileElements, identification: string | null): void {
   const rows = elements.excelPreview.querySelectorAll('tr');
