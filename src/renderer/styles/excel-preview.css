@@ -215,6 +215,21 @@
   background: var(--table-hover);
 }
 
+.excel-preview tbody tr.excel-row-active {
+  background: color-mix(in srgb, var(--accent) 18%, var(--surface));
+  animation: row-pulse 1.2s ease-in-out infinite;
+}
+
+.excel-preview tbody tr.excel-row-active td {
+  color: var(--text);
+  font-weight: 650;
+}
+
+@keyframes row-pulse {
+  0%, 100% { background: color-mix(in srgb, var(--accent) 18%, var(--surface)); }
+  50% { background: color-mix(in srgb, var(--accent) 30%, var(--surface)); }
+}
+
 .excel-preview tbody tr:hover td {
   color: var(--text);
 }

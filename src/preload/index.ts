@@ -13,7 +13,17 @@ export const electronAPI = {
     endDate: string;
     identification: string;
     identifications?: string[];
-  }): Promise<Array<{ identification: string; totalHours: string | null }>> => ipcRenderer.invoke('sofia:open-and-fill', credentials),
+  }, onProgress?: (identification: string | null, hours: string | null) => void): Promise<Array<{ identification: string; totalHours: string | null }>> => {
+    if (onProgress) {
+      const channel = 'sofia:progress';
+      const listener = (_event: Electron.IpcRendererEvent, identification: string | null, hours: string | null): void => onProgress(identification, hours);
+      ipcRenderer.on(channel, listener);
+      return ipcRenderer.invoke('sofia:open-and-fill', credentials).finally(() => {
+        ipcRenderer.removeListener(channel, listener);
+      });
+    }
+    return ipcRenderer.invoke('sofia:open-and-fill', credentials);
+  },
 
   // Escribe las horas en el Excel con Excel real (COM), preservando diseño y filtros.
   applyHoursToExcel: (payload: { data: ArrayBuffer; fileName: string; cedula: string; hours: string }): Promise<ArrayBuffer | null> =>

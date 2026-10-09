@@ -18,7 +18,7 @@ import { loadWindow } from './flow/window-loader.js';
 export type { InstructorHours, SofiaCredentials } from './types.js';
 
 // Ejecuta el flujo completo: login, navegación, selección de fechas y preparación del reporte.
-export async function openSofiaPlus(credentials: SofiaCredentials): Promise<InstructorHours[]> {
+export async function openSofiaPlus(credentials: SofiaCredentials, onProgress?: (identification: string | null, hours: string | null) => void): Promise<InstructorHours[]> {
   const window = await loadWindow();
   void showStepBanner(window, 1, '🔐 Llenando credenciales y haciendo login');
   await booleanScript(window, `(${fillSofiaInputs.toString()})(${JSON.stringify(credentials)})`, 'No se encontraron los campos de acceso de SofiaPlus.');
@@ -80,6 +80,7 @@ export async function openSofiaPlus(credentials: SofiaCredentials): Promise<Inst
       void showStepBanner(window, 12, '🪪 Escribiendo la identificación del instructor');
     }
     await booleanScript(window, `(${fillInstructorIdentification.toString()})(${JSON.stringify(identification)})`, 'No se encontró el campo de identificación del instructor.');
+    onProgress?.(identification, null);
 
     void showStepBanner(window, 13, '🔍 Pulsando Consultar');
     await booleanScript(window, `(${clickInstructorSearchInput.toString()})()`, 'No se encontró o no se pudo pulsar el botón Consultar.');
@@ -103,6 +104,7 @@ export async function openSofiaPlus(credentials: SofiaCredentials): Promise<Inst
     } else {
       console.warn(`[AIA][SofiaPlus] No se encontró el span de horas adicionales para ${identification}.`);
     }
+    onProgress?.(identification, totalHours);
     results.push({ identification, totalHours });
     } catch (error) {
       console.error(`[AIA][SofiaPlus] Falló la consulta de ${identification}; se detiene el bucle.`, error);

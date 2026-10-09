@@ -10,7 +10,7 @@ export interface IElectronAPI {
     endDate: string;
     identification: string;
     identifications?: string[];
-  }) => Promise<Array<{ identification: string; totalHours: string | null }>>;
+  }, onProgress?: (identification: string | null, hours: string | null) => void) => Promise<Array<{ identification: string; totalHours: string | null }>>;
 
   // Aplica las horas al Excel con Excel real, conservando diseño y filtros.
   // Devuelve null si Excel no está disponible (se puede usar el fallback).

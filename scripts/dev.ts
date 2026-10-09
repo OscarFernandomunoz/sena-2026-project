@@ -55,9 +55,9 @@ function startElectron(): void {
   }
 
   console.log('[AIA][Dev] Iniciando el proceso de Electron.');
-  // No activamos --enable-logging para evitar duplicar cada console.log del renderer
-  // como "INFO:CONSOLE". Los logs útiles de SofiaPlus se reenvían desde el proceso main.
-  electronProcess = spawn(String(electronPath), ['.'], {
+  // --disable-gpu: evita el error "WebGL1 blocklisted" en entornos Linux sin GPU.
+  // --no-sandbox: necesario en algunos entornos Linux para que Chromium funcione.
+  electronProcess = spawn(String(electronPath), ['.', '--disable-gpu', '--no-sandbox'], {
     cwd: rootDir,
     stdio: 'inherit',
     env: { ...process.env, NODE_ENV: 'development' },

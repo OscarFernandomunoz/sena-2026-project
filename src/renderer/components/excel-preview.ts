@@ -122,6 +122,20 @@ function getAllIdentifications(rows: unknown[][]): string[] {
     .filter((value) => value.replace(/\D/g, '').length >= 6);
 }
 
+// Resalta la fila que contiene la cédula indicada.
+export function highlightRow(elements: FileElements, identification: string | null): void {
+  const rows = elements.excelPreview.querySelectorAll('tr');
+  rows.forEach((row) => {
+    row.classList.remove('excel-row-active');
+  });
+  if (!identification) return;
+  const target = Array.from(rows).find((row) => {
+    const cells = Array.from(row.cells).map((cell) => cell.textContent?.trim() ?? '');
+    return cells.some((cell) => cell === identification || cell.includes(identification));
+  });
+  target?.classList.add('excel-row-active');
+}
+
 function rejectFile(elements: FileElements, state: FileUploadState, message: string): void {
   state.file = null;
   state.firstIdentification = null;

@@ -3,13 +3,20 @@ import { openSofiaPlus, type InstructorHours, type SofiaCredentials } from '../s
 import { applyHoursWithExcel, type ApplyHoursPayload } from '../services/excel/apply-hours.js';
 import { applyTitleBarTheme } from '../windows/appearance.js';
 
+// Envía un evento de progreso al renderer (resaltado de fila y horas en la vista previa).
+function sendProgress(webContents: Electron.WebContents, identification: string | null, hours: string | null): void {
+  if (!webContents.isDestroyed()) {
+    webContents.send('sofia:progress', identification, hours);
+  }
+}
+
 // Registra los canales IPC que usa la app para comunicarse entre el renderer y el proceso principal.
 export function registerIpcHandlers(): void {
   try {
     // Ejecuta el flujo completo de login y manejo de SofiaPlus con las credenciales recibidas.
-    ipcMain.handle('sofia:open-and-fill', async (_event, credentials: SofiaCredentials): Promise<InstructorHours[]> => {
+    ipcMain.handle('sofia:open-and-fill', async (event, credentials: SofiaCredentials): Promise<InstructorHours[]> => {
       try {
-        return await openSofiaPlus(credentials);
+        return await openSofiaPlus(credentials, (identification, hours) => sendProgress(event.sender, identification, hours));
       } catch (error) {
         console.error('[AIA][SofiaPlus] No se pudo completar el flujo de automatización.', error);
         throw error;

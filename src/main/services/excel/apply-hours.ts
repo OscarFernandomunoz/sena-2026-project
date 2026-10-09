@@ -35,12 +35,16 @@ export async function applyHoursWithExcel(payload: ApplyHoursPayload): Promise<B
       { timeout: 120000 },
     );
   } catch (error) {
-    const exitCode = (error as { code?: number | string }).code;
-    console.warn(`[AIA][Excel] PowerShell COM falló (código ${String(exitCode)}). Se usará el fallback.`);
+    const err = error as { code?: number | string; stderr?: string; message?: string };
+    console.warn(`[AIA][Excel] PowerShell COM falló (código ${String(err.code)}). Se usará el fallback.`);
+    if (err.stderr) console.warn(`[AIA][Excel] stderr: ${err.stderr.slice(0, 500)}`);
+    if (err.message) console.warn(`[AIA][Excel] message: ${err.message.slice(0, 500)}`);
     return null;
   }
   try {
-    return readFileSync(outPath);
+    const result = readFileSync(outPath);
+    console.log(`[AIA][Excel] COM: archivo modificado leído, ${result.length} bytes (original: ${payload.data.byteLength} bytes)`);
+    return result;
   } catch {
     console.warn('[AIA][Excel] No se generó el archivo de salida.');
     return null;

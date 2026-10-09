@@ -1,5 +1,7 @@
 import type { AppElements, FileUploadState } from '../types.js';
 import { writeHoursIntoExcel } from './excel-update/index.js';
+import { highlightRow } from './excel-preview.js';
+import { colorHoursCellInPreview } from './excel-update/preview-color.js';
 
 function setSubmitState(button: HTMLButtonElement, state: 'idle' | 'loading' | 'success' | 'error'): void {
   const label = button.querySelector<HTMLSpanElement>('.btn-label');
@@ -40,28 +42,31 @@ export function initSubmit(elements: Pick<AppElements, 'uploadButton' | 'statusM
         startDate: elements.inputStartDate.value,
         endDate: elements.inputEndDate.value,
         identification: state.firstIdentification ?? '',
+        identifications: state.identifications,
+      }, (identification, hours) => {
+        state.currentIdentification = identification;
+        highlightRow(elements, identification);
+        if (identification && hours) {
+          colorHoursCellInPreview(elements, identification, hours);
+        }
       });
       setSubmitState(elements.uploadButton, 'success');
       const found = results.filter((r) => r.totalHours);
       console.log('[AIA][Excel] Resultados SofiaPlus:', results);
-      if (found.length > 0) {
-        elements.statusMessage.textContent = `Horas leídas para ${found.length} de ${results.length} instructores. Actualizando el Excel...`;
-        try {
-          const updated = await writeHoursIntoExcel(results, elements, state);
-          console.log('[AIA][Excel] writeHoursIntoExcel devolvió:', updated);
-          if (!updated) {
-            elements.statusMessage.textContent = 'No se encontraron cédulas coincidentes en el Excel.';
-          }
-        } catch (updateError) {
-          console.error('[AIA][Excel] No se pudo actualizar el Excel.', updateError);
-          elements.statusMessage.textContent = `No se pudo actualizar el Excel: ${updateError instanceof Error ? updateError.message : String(updateError)}`;
+      elements.statusMessage.textContent = found.length > 0
+        ? `Horas leídas para ${found.length} de ${results.length} instructores. Actualizando el Excel...`
+        : 'Sin horas del portal. No se modificó el Excel.';
+      try {
+        const updated = await writeHoursIntoExcel(results, elements, state);
+        console.log('[AIA][Excel] writeHoursIntoExcel devolvió:', updated);
+        if (!updated && found.length > 0) {
+          elements.statusMessage.textContent = 'No se encontraron cédulas coincidentes en el Excel.';
         }
-      } else {
-        elements.statusMessage.textContent = 'Sesión iniciada en SofiaPlus, pero no se pudo leer el total de horas de ningún instructor.';
+      } catch (updateError) {
+        console.error('[AIA][Excel] No se pudo actualizar el Excel.', updateError);
+        elements.statusMessage.textContent = `No se pudo actualizar el Excel: ${updateError instanceof Error ? updateError.message : String(updateError)}`;
       }
-      window.setTimeout(() => {
-        if (!state.isUploading) setSubmitState(elements.uploadButton, 'idle');
-      }, 2500);
+      window.setTimeout(() => setSubmitState(elements.uploadButton, 'idle'), 2500);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       const userMessage = message.includes('rol necesario') ? message : 'No se pudo abrir SofiaPlus. Revisa tu conexión e inténtalo nuevamente.';
@@ -71,9 +76,7 @@ export function initSubmit(elements: Pick<AppElements, 'uploadButton' | 'statusM
     } finally {
       state.isUploading = false;
       elements.uploadButton.disabled = false;
-      window.setTimeout(() => {
-        if (!state.isUploading) setSubmitState(elements.uploadButton, 'idle');
-      }, 2800);
+      window.setTimeout(() => setSubmitState(elements.uploadButton, 'idle'), 2800);
     }
   });
 }

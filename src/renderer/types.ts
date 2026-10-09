@@ -3,6 +3,7 @@ export interface FileUploadState {
   firstIdentification: string | null;
   identifications: string[];
   isUploading: boolean;
+  currentIdentification: string | null;
 }
 
 export interface LocationData {

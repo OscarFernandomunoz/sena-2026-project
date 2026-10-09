@@ -5,6 +5,7 @@ import {
   HOURS_COLUMN_NAME,
   HOURS_THRESHOLD,
   RED_FILL,
+  hoursCellValue,
   isCedulaHeader,
   parseHoursValue,
   sameHeader,
@@ -28,6 +29,85 @@ export async function rebuildFromRows(data: ArrayBuffer, cedula: string, hours: 
   if (!updated) return null;
   colorHoursCell(out, cedula, hours);
   return (await out.xlsx.writeBuffer()) as unknown as ArrayBuffer;
+}
+
+// Versión que conserva SOLO las filas de las cédulas consultadas.
+export async function rebuildFromRowsMultiple(
+  data: ArrayBuffer,
+  targets: Array<{ identification: string; totalHours: string }>,
+): Promise<ArrayBuffer | null> {
+  const source = XLSX.read(data, { type: 'array' });
+  const out = new ExcelJS.Workbook();
+  let updated = false;
+  for (const sheetName of source.SheetNames) {
+    const sheet = source.Sheets[sheetName];
+    const rows = sheet ? XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: '' }) : [];
+    const keepRows = filterRowsByCedulas(rows, targets);
+    const filtered = keepRows.length > 0 ? keepRows : rows;
+    const ws = out.addWorksheet(sheetName);
+    ws.addRows(filtered);
+    for (const { identification, totalHours } of targets) {
+      if (colorHoursCellInRows(ws, identification, totalHours)) updated = true;
+    }
+  }
+  if (!updated) return null;
+  return (await out.xlsx.writeBuffer()) as unknown as ArrayBuffer;
+}
+
+// Filtra las filas: conserva encabezados y solo las filas con las cédulas indicadas.
+function filterRowsByCedulas(
+  rows: unknown[][],
+  targets: Array<{ identification: string; totalHours: string }>,
+): unknown[][] {
+  const cedulaHeader = findColumnAnywhere(rows, isCedulaHeader);
+  if (!cedulaHeader) return [];
+  const cedulaCol = cedulaHeader.col;
+  const headerRowIndex = cedulaHeader.row;
+  const cedulas = new Set(targets.map((t) => t.identification.trim()));
+  const result: unknown[][] = [];
+  for (let i = 0; i < rows.length; i += 1) {
+    const row = rows[i] ?? [];
+    if (i <= headerRowIndex) {
+      result.push(row);
+      continue;
+    }
+    const cellValue = String(row[cedulaCol] ?? '').trim();
+    if (cedulas.has(cellValue)) {
+      result.push(row);
+    }
+  }
+  return result;
+}
+
+// Colorea la celda de horas en una fila específica.
+function colorHoursCellInRows(
+  ws: ExcelJS.Worksheet,
+  cedula: string,
+  hours: string,
+): boolean {
+  const value = parseHoursValue(hours);
+  const fillArgb = Number.isFinite(value) && value < HOURS_THRESHOLD ? RED_FILL : GREEN_FILL;
+  let cedulaCol = -1;
+  let hoursCol = -1;
+  ws.eachRow((row) => {
+    if (cedulaCol !== -1 && hoursCol !== -1) return;
+    row.eachCell((cell, colNumber) => {
+      if (cedulaCol === -1 && isCedulaHeader(cell.text ?? '')) cedulaCol = colNumber;
+      if (hoursCol === -1 && sameHeader(cell.text ?? '', HOURS_COLUMN_NAME)) hoursCol = colNumber;
+    });
+  });
+  if (cedulaCol === -1 || hoursCol === -1) return false;
+  let found = false;
+  ws.eachRow((row) => {
+    if (found) return;
+    if ((row.getCell(cedulaCol).text ?? '').trim() === cedula.trim()) {
+      const cell = row.getCell(hoursCol);
+      cell.value = hoursCellValue(hours);
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fillArgb } };
+      found = true;
+    }
+  });
+  return found;
 }
 
 // Busca la cédula/columna de horas RECORRIENDO TODA la hoja (cualquier fila o
