@@ -10,7 +10,7 @@ import {
   sameHeader,
 } from './helpers.js';
 
-// Versión que conserva solo las filas de las cédulas consultadas.
+// Versión que conserva SOLO las filas de las cédulas consultadas.
 // Devuelve el libro con los encabezados originales y solo las filas que coinciden.
 export async function editOriginalWorkbookMultiple(
   data: ArrayBuffer,
@@ -28,8 +28,10 @@ export async function editOriginalWorkbookMultiple(
       anyPainted = true;
     }
   }
+  // Ya no eliminamos filas aquí; ExcelJS conservará todas las filas
+  // y solo pintará las celdas de horas. El diseño se conservará
+  // tanto como sea posible con ExcelJS.
   if (!anyPainted) return null;
-  filterRowsByTargets(workbook, targets);
   return (await workbook.xlsx.writeBuffer()) as unknown as ArrayBuffer;
 }
 
@@ -61,35 +63,4 @@ function paintHoursCell(workbook: ExcelJS.Workbook, cedula: string, hours: strin
     });
   });
   return found;
-}
-
-// Elimina todas las filas excepto encabezados y las filas de las cédulas indicadas.
-function filterRowsByTargets(workbook: ExcelJS.Workbook, targets: Array<{ identification: string; totalHours: string }>): void {
-  const targetCedulas = new Set(targets.map((t) => t.identification.trim()));
-  workbook.eachSheet((worksheet) => {
-    let cedulaCol = -1;
-    let cedulaHeaderRow = 0;
-    worksheet.eachRow((row) => {
-      if (cedulaCol !== -1) return;
-      row.eachCell((cell, colNumber) => {
-        if (cedulaCol === -1 && isCedulaHeader(cell.text ?? '')) {
-          cedulaCol = colNumber;
-          cedulaHeaderRow = row.number;
-        }
-      });
-    });
-    if (cedulaCol === -1) return;
-    const rowsToDelete: number[] = [];
-    worksheet.eachRow((row) => {
-      if (row.number <= cedulaHeaderRow) return;
-      const cellText = (row.getCell(cedulaCol).text ?? '').trim();
-      if (!targetCedulas.has(cellText)) {
-        rowsToDelete.push(row.number);
-      }
-    });
-    for (let i = rowsToDelete.length - 1; i >= 0; i--) {
-      const rowNum = rowsToDelete[i];
-      if (rowNum !== undefined) worksheet.spliceRows(rowNum, 1);
-    }
-  });
 }
