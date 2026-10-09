@@ -135,7 +135,8 @@ export function getVisibleIdentifications(elements: FileElements): string[] {
     )?.columnIndex;
     if (requiredIndex === undefined) return;
     table.tBodies[0]?.querySelectorAll('tr:not([hidden])').forEach((row) => {
-      const cell = row.cells[requiredIndex];
+      const tableRow = row as HTMLTableRowElement;
+      const cell = tableRow.cells[requiredIndex];
       const value = (cell?.textContent ?? '').trim();
       if (value.replace(/\D/g, '').length >= 6) visible.push(value);
     });
