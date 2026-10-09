@@ -4,6 +4,7 @@ import { editOriginalWorkbookMultiple } from './exceljs-edit.js';
 import { rebuildFromRowsMultiple } from './xls-rebuild.js';
 import { HOURS_THRESHOLD } from './helpers.js';
 import { colorHoursCellInPreview } from './preview-color.js';
+import { showDownloadButton } from './download-button.js';
 import * as XLSX from 'xlsx';
 
 // Cuenta las filas con datos en un archivo Excel para depuración.
@@ -98,6 +99,14 @@ export async function writeHoursIntoExcel(
     colorHoursCellInPreview(elements, identification, totalHours);
   }
   console.log('[AIA][Excel] Vista previa refrescada y coloreada.');
+  showDownloadButton(elements, () => {
+    const url = URL.createObjectURL(updatedFile);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = updatedFile.name;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 5000);
+  });
 
   const notFoundNote = notFound.length > 0 ? ` Sin coincidencia en el Excel: ${notFound.join(', ')}.` : '';
   const preservedDesign = usedRoute === 'exceljs';
