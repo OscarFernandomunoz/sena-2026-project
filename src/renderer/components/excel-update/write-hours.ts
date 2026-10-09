@@ -52,19 +52,36 @@ export async function writeHoursIntoExcel(
   const originalBuffer = await state.file.arrayBuffer();
   console.log('[AIA][Excel] Buffer inicial:', originalBuffer.byteLength, 'bytes, filas:', countRows(originalBuffer));
 
-  // Intentar aplicar TODAS las horas en una sola pasada con ExcelJS (preserva todas las filas)
+  // Primera opción: Excel COM múltiple preserva el diseño original al 100%.
   let updatedBuffer: ArrayBuffer | null = null;
-  let usedRoute: 'exceljs' | 'rebuild' | null = null;
+  let usedRoute: 'com' | 'exceljs' | 'rebuild' | null = null;
   const notFound: string[] = [];
 
   try {
-    updatedBuffer = await editOriginalWorkbookMultiple(originalBuffer, targets);
+    updatedBuffer = await window.electronAPI.applyHoursMultipleToExcel({
+      data: originalBuffer,
+      fileName: state.file.name,
+      targets,
+    });
     if (updatedBuffer) {
-      console.log(`[AIA][Excel] Horas aplicadas con ExcelJS. Buffer: ${originalBuffer.byteLength} -> ${updatedBuffer.byteLength} bytes, filas: ${countRows(updatedBuffer)}`);
-      usedRoute = 'exceljs';
+      console.log(`[AIA][Excel] Horas aplicadas con Excel COM. Buffer: ${originalBuffer.byteLength} -> ${updatedBuffer.byteLength} bytes`);
+      usedRoute = 'com';
     }
   } catch (error) {
-    console.warn('[AIA][Excel] Error en la ruta ExcelJS; se usará el fallback .xls.', error);
+    console.warn('[AIA][Excel] Error en la ruta COM múltiple; se intentará ExcelJS.', error);
+  }
+
+  // Segunda opción: ExcelJS directo sobre el archivo, conservando estilos y filtros.
+  if (!updatedBuffer) {
+    try {
+      updatedBuffer = await editOriginalWorkbookMultiple(originalBuffer, targets);
+      if (updatedBuffer) {
+        console.log(`[AIA][Excel] Horas aplicadas con ExcelJS. Buffer: ${originalBuffer.byteLength} -> ${updatedBuffer.byteLength} bytes, filas: ${countRows(updatedBuffer)}`);
+        usedRoute = 'exceljs';
+      }
+    } catch (error) {
+      console.warn('[AIA][Excel] Error en la ruta ExcelJS; se usará el fallback .xls.', error);
+    }
   }
 
   if (!updatedBuffer) {
@@ -109,7 +126,7 @@ export async function writeHoursIntoExcel(
   });
 
   const notFoundNote = notFound.length > 0 ? ` Sin coincidencia en el Excel: ${notFound.join(', ')}.` : '';
-  const preservedDesign = usedRoute === 'exceljs';
+  const preservedDesign = usedRoute === 'com' || usedRoute === 'exceljs';
   elements.statusMessage.textContent = preservedDesign
     ? `Horas escritas para ${targets.length - notFound.length} instructor(es) con color (rojo < ${HOURS_THRESHOLD}, verde ≥ ${HOURS_THRESHOLD}). Diseño y filtros conservados.${notFoundNote} Archivo: ${updatedFile.name}.`
     : `Horas escritas para ${targets.length - notFound.length} instructor(es). Aviso: el archivo era .xls y se reconstruyó, así que pudo perder el diseño/filtros.${notFoundNote} Archivo: ${updatedFile.name}.`;

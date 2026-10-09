@@ -16,6 +16,10 @@ export interface IElectronAPI {
   // Devuelve null si Excel no está disponible (se puede usar el fallback).
   applyHoursToExcel: (payload: { data: ArrayBuffer; fileName: string; cedula: string; hours: string }) => Promise<ArrayBuffer | null>;
 
+  // Aplica las horas a TODAS las cédulas en una sola pasada con Excel real,
+  // conservando diseño y filtros. Devuelve null si Excel no está disponible.
+  applyHoursMultipleToExcel: (payload: { data: ArrayBuffer; fileName: string; targets: Array<{ identification: string; totalHours: string }> }) => Promise<ArrayBuffer | null>;
+
   // Control de la ventana (TitleBar)
   titleBarPlatform: TitleBarPlatform;
   setTitleBarTheme: (theme: 'light' | 'dark') => void;

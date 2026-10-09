@@ -1,6 +1,7 @@
 import { BrowserWindow, ipcMain } from 'electron';
 import { openSofiaPlus, type InstructorHours, type SofiaCredentials } from '../services/sofia-plus/index.js';
 import { applyHoursWithExcel, type ApplyHoursPayload } from '../services/excel/apply-hours.js';
+import { applyHoursMultipleWithExcel, type ApplyHoursMultiplePayload } from '../services/excel/apply-hours-multiple.js';
 import { applyTitleBarTheme } from '../windows/appearance.js';
 
 // Envía un evento de progreso al renderer (resaltado de fila y horas en la vista previa).
@@ -30,6 +31,17 @@ export function registerIpcHandlers(): void {
         return result ? result.buffer.slice(result.byteOffset, result.byteOffset + result.byteLength) as ArrayBuffer : null;
       } catch (error) {
         console.error('[AIA][Excel] Error al aplicar horas con Excel COM.', error);
+        return null;
+      }
+    });
+
+    // Aplica las horas a TODAS las cédulas en una sola pasada con Excel real (COM).
+    ipcMain.handle('excel:apply-hours-multiple', async (_event, payload: ApplyHoursMultiplePayload): Promise<ArrayBuffer | null> => {
+      try {
+        const result = await applyHoursMultipleWithExcel(payload);
+        return result ? result.buffer.slice(result.byteOffset, result.byteOffset + result.byteLength) as ArrayBuffer : null;
+      } catch (error) {
+        console.error('[AIA][Excel] Error al aplicar horas múltiples con Excel COM.', error);
         return null;
       }
     });

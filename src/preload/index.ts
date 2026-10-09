@@ -29,6 +29,10 @@ export const electronAPI = {
   applyHoursToExcel: (payload: { data: ArrayBuffer; fileName: string; cedula: string; hours: string }): Promise<ArrayBuffer | null> =>
     ipcRenderer.invoke('excel:apply-hours', payload),
 
+  // Aplica las horas a TODAS las cédulas en una sola pasada con Excel real (COM).
+  applyHoursMultipleToExcel: (payload: { data: ArrayBuffer; fileName: string; targets: Array<{ identification: string; totalHours: string }> }): Promise<ArrayBuffer | null> =>
+    ipcRenderer.invoke('excel:apply-hours-multiple', payload),
+
   // Sincroniza el color del overlay nativo de Windows/Linux.
   setTitleBarTheme: (theme: TitleBarTheme): void => ipcRenderer.send('window:set-title-bar-theme', theme),
 
